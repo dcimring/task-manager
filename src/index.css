@@ -150,3 +150,171 @@ input, select, textarea, button {
   box-shadow: 0 10px 26px rgba(33, 29, 58, 0.1);
   border-color: rgba(33, 29, 58, 0.18);
 }
+
+/* Responsive Structural Classes */
+.app-layout {
+  min-height: 100dvh;
+  background-color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  color: #211d3a;
+  display: flex;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  background-color: #211d3a;
+  color: #f7f2e8;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 24px;
+  z-index: 40;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content {
+  margin-left: 250px;
+  flex: 1;
+  min-width: 0;
+  padding: 56px 40px 80px;
+  max-width: 1280px;
+}
+
+.mobile-header {
+  display: none;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(33, 29, 58, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 35;
+  animation: fadeInUp 0.2s ease;
+}
+
+.page-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 56px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 24px;
+}
+
+.weekly-chart-container {
+  background: #fff;
+  border: 1px solid rgba(33, 29, 58, 0.1);
+  border-radius: 18px;
+  padding: 32px;
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  height: 230px;
+  overflow-x: auto;
+}
+
+.task-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 460px;
+  max-width: 100%;
+  background-color: #fdfbf6;
+  z-index: 51;
+  padding: 40px;
+  overflow-y: auto;
+  box-shadow: -12px 0 32px rgba(33, 29, 58, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: panelIn 0.3s ease;
+}
+
+.board-scroll-container {
+  overflow-x: auto;
+  padding-bottom: 16px;
+  margin: 0 -20px;
+  padding: 0 20px 16px;
+}
+
+.board-columns-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+@media (min-width: 769px) {
+  .board-scroll-container {
+    margin: 0;
+    padding: 0 0 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: 12px 0 32px rgba(33, 29, 58, 0.25);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main-content {
+    margin-left: 0;
+    padding: 92px 20px 60px;
+  }
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: #211d3a;
+    color: #f7f2e8;
+    padding: 0 20px;
+    z-index: 30;
+    box-shadow: 0 2px 8px rgba(33, 29, 58, 0.15);
+  }
+  .mobile-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-left: 16px;
+  }
+  .hamburger-btn {
+    background: none;
+    border: none;
+    color: #f7f2e8;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .page-title {
+    font-size: 38px;
+  }
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  .weekly-chart-container {
+    padding: 20px 16px;
+    gap: 10px;
+  }
+  .task-panel {
+    padding: 24px 16px;
+    gap: 16px;
+  }
+}
+

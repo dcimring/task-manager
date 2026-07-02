@@ -9,6 +9,7 @@ export default function App() {
   const [projectForm, setProjectForm] = useState({ show: false, name: '', description: '' });
   const [editingProject, setEditingProject] = useState(null); // null or { id, name, description }
   const [weekKey, setWeekKey] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Load state from Convex
   const tasks = useQuery(api.tasks.get) ?? [];
@@ -399,31 +400,26 @@ export default function App() {
   const ringDeg = Math.round((overallCompletionRate / 100) * 360);
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: bg,
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
-        color: '#211d3a',
-        display: 'flex',
-      }}
-    >
+    <div className="app-layout">
+      {/* Mobile Header */}
+      <div className="mobile-header">
+        <button className="hamburger-btn" onClick={() => setMobileMenuOpen(true)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <span className="mobile-title">Task Manager</span>
+      </div>
+
+      {/* Sidebar Drawer Overlay for Mobile */}
+      {mobileMenuOpen && (
+        <div className="sidebar-overlay" onClick={() => setMobileMenuOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          bottom: 0,
-          width: '250px',
-          backgroundColor: '#211d3a',
-          color: '#f7f2e8',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '32px 24px',
-          zIndex: 15,
-        }}
-      >
+      <div className={`sidebar ${mobileMenuOpen ? 'open' : ''}`}>
         <div style={{ marginBottom: '52px' }}>
           <div
             style={{
@@ -452,7 +448,10 @@ export default function App() {
           {tabs.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setView(tab.key)}
+              onClick={() => {
+                setView(tab.key);
+                setMobileMenuOpen(false);
+              }}
               className={`sidebar-tab ${tab.active ? 'active' : 'inactive'}`}
             >
               <span
@@ -471,22 +470,19 @@ export default function App() {
           ))}
         </div>
 
-        <button onClick={openNewTask} className="cta-btn">
+        <button
+          onClick={() => {
+            openNewTask();
+            setMobileMenuOpen(false);
+          }}
+          className="cta-btn"
+        >
           + New Task
         </button>
       </div>
 
       {/* Main Content Area */}
-      <div
-        style={{
-          marginLeft: '250px',
-          flex: 1,
-          minWidth: 0,
-          padding: '56px 40px 80px',
-          maxWidth: '1280px',
-          overflowX: 'auto',
-        }}
-      >
+      <div className="main-content">
         {/* Tasks Screen */}
         {view === 'tasks' && (
           <div style={{ animation: 'fadeInUp 0.45s ease' }}>
@@ -511,14 +507,7 @@ export default function App() {
                 marginBottom: '28px',
               }}
             >
-              <div
-                style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: '56px',
-                  fontWeight: 600,
-                  letterSpacing: '-0.015em',
-                }}
-              >
+              <div className="page-title">
                 Tasks
               </div>
               <div
@@ -681,71 +670,65 @@ export default function App() {
             >
               02 — WORKFLOW
             </div>
-            <div
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: '56px',
-                fontWeight: 600,
-                letterSpacing: '-0.015em',
-                marginBottom: '28px',
-              }}
-            >
+            <div className="page-title" style={{ marginBottom: '28px' }}>
               Board
             </div>
             <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginBottom: '28px' }}></div>
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-              {boardColumns.map((col) => (
-                <div
-                  key={col.status}
-                  onDragOver={allowDrop}
-                  onDrop={(e) => handleDrop(e, col.status)}
-                  style={{ flex: 1, minWidth: '250px' }}
-                >
+            <div className="board-scroll-container">
+              <div className="board-columns-container">
+                {boardColumns.map((col) => (
                   <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '16px',
-                      paddingBottom: '10px',
-                      borderBottom: `2px solid ${col.accentColor}`,
-                    }}
+                    key={col.status}
+                    onDragOver={allowDrop}
+                    onDrop={(e) => handleDrop(e, col.status)}
+                    style={{ flex: 1, minWidth: '250px' }}
                   >
-                    <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '17px', fontWeight: 600 }}>{col.label}</span>
-                    <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.4)' }}>{col.count}</span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '300px' }}>
-                    {col.tasks.map((t) => (
-                      <div
-                        key={t._id}
-                        draggable
-                        onDragStart={(e) => dragStart(e, t._id)}
-                        onClick={() => openEditTask(t)}
-                        className="board-card"
-                      >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '16px',
+                        paddingBottom: '10px',
+                        borderBottom: `2px solid ${col.accentColor}`,
+                      }}
+                    >
+                      <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '17px', fontWeight: 600 }}>{col.label}</span>
+                      <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.4)' }}>{col.count}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '300px' }}>
+                      {col.tasks.map((t) => (
                         <div
-                          style={{
-                            fontFamily: 'inherit',
-                            fontSize: '14.5px',
-                            color: '#211d3a',
-                            marginBottom: '10px',
-                            lineHeight: 1.4,
-                          }}
+                          key={t._id}
+                          draggable
+                          onDragStart={(e) => dragStart(e, t._id)}
+                          onClick={() => openEditTask(t)}
+                          className="board-card"
                         >
-                          {t.description}
+                          <div
+                            style={{
+                              fontFamily: 'inherit',
+                              fontSize: '14.5px',
+                              color: '#211d3a',
+                              marginBottom: '10px',
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {t.description}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContext: 'space-between', justifyContent: 'space-between' }}>
+                            <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', color: 'rgba(33, 29, 58, 0.5)' }}>{t.project}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <span style={t.urgencyDotStyle}></span>
+                              <span style={t.deadlineTextStyle}>{t.deadlineFmt}</span>
+                            </span>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContext: 'space-between', justifyContent: 'space-between' }}>
-                          <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', color: 'rgba(33, 29, 58, 0.5)' }}>{t.project}</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={t.urgencyDotStyle}></span>
-                            <span style={t.deadlineTextStyle}>{t.deadlineFmt}</span>
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -764,19 +747,11 @@ export default function App() {
             >
               03 — PORTFOLIO
             </div>
-            <div
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: '56px',
-                fontWeight: 600,
-                letterSpacing: '-0.015em',
-                marginBottom: '28px',
-              }}
-            >
+            <div className="page-title" style={{ marginBottom: '28px' }}>
               Projects
             </div>
             <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginBottom: '32px' }}></div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '24px' }}>
               {projectStats.map((p) => (
                 <div key={p._id} className="project-card">
                   {editingProject && editingProject.id === p._id ? (
@@ -1017,20 +992,12 @@ export default function App() {
             >
               04 — PERFORMANCE
             </div>
-            <div
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: '56px',
-                fontWeight: 600,
-                letterSpacing: '-0.015em',
-                marginBottom: '28px',
-              }}
-            >
+            <div className="page-title" style={{ marginBottom: '28px' }}>
               Analytics
             </div>
             <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginBottom: '36px' }}></div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr', gap: '24px', marginBottom: '48px' }}>
+            <div className="analytics-grid" style={{ marginBottom: '48px' }}>
               <div style={{ background: '#211d3a', borderRadius: '18px', padding: '32px', display: 'flex', alignItems: 'center', gap: '24px' }}>
                 <div
                   style={{
@@ -1154,18 +1121,7 @@ export default function App() {
               <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '22px', fontWeight: 600, marginBottom: '20px' }}>
                 Completed by Week
               </div>
-              <div
-                style={{
-                  background: '#fff',
-                  border: '1px solid rgba(33, 29, 58, 0.1)',
-                  borderRadius: '18px',
-                  padding: '32px',
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  gap: '18px',
-                  height: '230px',
-                }}
-              >
+              <div className="weekly-chart-container">
                 {weeklyStatsBars.map((w) => (
                   <div
                     key={w.key}
@@ -1221,14 +1177,7 @@ export default function App() {
                 marginBottom: '16px',
               }}
             >
-              <div
-                style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: '56px',
-                  fontWeight: 600,
-                  letterSpacing: '-0.015em',
-                }}
-              >
+              <div className="page-title">
                 Weekly Report
               </div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -1335,23 +1284,7 @@ export default function App() {
           ></div>
           <div
             onClick={stopClick}
-            style={{
-              position: 'fixed',
-              top: 0,
-              right: 0,
-              bottom: 0,
-              width: '460px',
-              maxWidth: '92vw',
-              backgroundColor: '#fdfbf6',
-              zIndex: 31,
-              padding: '40px',
-              overflowY: 'auto',
-              boxShadow: '-12px 0 32px rgba(33, 29, 58, 0.18)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '22px',
-              animation: 'panelIn 0.3s ease',
-            }}
+            className="task-panel"
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '26px', fontWeight: 600 }}>

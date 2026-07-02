@@ -46,6 +46,7 @@ Application state is synchronized in real-time with the Convex backend using rea
 * **`projectForm`**: Draft fields for new project additions.
 * **`editingProject`**: Draft fields (id, name, description) for editing an existing project.
 * **`weekKey`**: Tracks the selected week in the Weekly Report.
+* **`mobileMenuOpen`**: Local state to toggle the sidebar drawer open/closed on mobile screens.
 
 ### 2. Storage and Database
 
@@ -64,5 +65,8 @@ To keep state simple and singular, views are rendered dynamically by deriving st
 
 ### 4. Interactive Components & Styling
 
-* **Vanilla CSS**: Global rules, custom font embedding (Source Serif 4), keyframes (`fadeInUp`, `panelIn`), and interactive pseudo-classes (`:hover` overrides for buttons, cards, and list rows) are managed cleanly in `src/index.css`.
+* **Vanilla CSS & Responsiveness**: Global rules, custom font embedding (Source Serif 4), keyframes (`fadeInUp`, `panelIn`), and interactive pseudo-classes are managed in `src/index.css`. Responsive breakpoints using media queries (`@media (max-width: 768px)`) adapt the layout on mobile:
+  * The desktop fixed sidebar collapses into a sliding drawer toggleable via a hamburger top bar.
+  * Multi-column layouts (Analytics stats grid) collapse into single-column vertical stacks.
+  * Wide elements (Weekly report charts, Kanban board columns, task records table) auto-scroll horizontally to avoid vertical clipping or squishing.
 * **Drag-and-Drop Board**: Utilizes HTML5 drag events (`onDragStart`, `onDragOver`, `onDrop`) mapped directly to React status transition handlers.
