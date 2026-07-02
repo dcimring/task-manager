@@ -691,6 +691,8 @@ export default function App() {
                 style={{
                   flex: 1,
                   minWidth: '220px',
+                  height: '42px',
+                  boxSizing: 'border-box',
                   padding: '10px 14px',
                   borderRadius: '8px',
                   border: '1px solid rgba(33, 29, 58, 0.16)',
@@ -704,11 +706,13 @@ export default function App() {
                 value={filters.project}
                 onChange={(e) => setFilters((f) => ({ ...f, project: e.target.value }))}
                 style={{
+                  height: '42px',
+                  boxSizing: 'border-box',
                   padding: '10px 12px',
                   borderRadius: '8px',
                   border: '1px solid rgba(33, 29, 58, 0.16)',
                   backgroundColor: '#fff',
-                  fontSize: '13px',
+                  fontSize: '14px',
                   color: '#211d3a',
                 }}
               >
@@ -723,11 +727,13 @@ export default function App() {
                 value={filters.urgency}
                 onChange={(e) => setFilters((f) => ({ ...f, urgency: e.target.value }))}
                 style={{
+                  height: '42px',
+                  boxSizing: 'border-box',
                   padding: '10px 12px',
                   borderRadius: '8px',
                   border: '1px solid rgba(33, 29, 58, 0.16)',
                   backgroundColor: '#fff',
-                  fontSize: '13px',
+                  fontSize: '14px',
                   color: '#211d3a',
                 }}
               >
@@ -740,11 +746,13 @@ export default function App() {
                 value={filters.status}
                 onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
                 style={{
+                  height: '42px',
+                  boxSizing: 'border-box',
                   padding: '10px 12px',
                   borderRadius: '8px',
                   border: '1px solid rgba(33, 29, 58, 0.16)',
                   backgroundColor: '#fff',
-                  fontSize: '13px',
+                  fontSize: '14px',
                   color: '#211d3a',
                 }}
               >
@@ -755,6 +763,99 @@ export default function App() {
                 <option value="done">Done</option>
               </select>
             </div>
+
+            {/* Active Filters Warning Banner */}
+            {(() => {
+              const activeFilters = [];
+              if (filters.project !== 'all') activeFilters.push({ key: 'project', label: `Project: ${filters.project}` });
+              if (filters.urgency !== 'all') activeFilters.push({ key: 'urgency', label: `Urgency: ${filters.urgency}` });
+              if (filters.status !== 'all') {
+                const statusLabels = { todo: 'To Do', doing: 'Doing', blocked: 'Blocked', done: 'Done' };
+                activeFilters.push({ key: 'status', label: `Status: ${statusLabels[filters.status] || filters.status}` });
+              }
+              if (activeFilters.length === 0) return null;
+
+              return (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 18px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(33, 29, 58, 0.04)',
+                    border: '1px solid rgba(33, 29, 58, 0.1)',
+                    marginBottom: '28px',
+                    fontSize: '14px',
+                    color: '#211d3a',
+                    fontFamily: 'inherit',
+                    animation: 'fadeInUp 0.3s ease',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '16px' }}>🔍</span>
+                    <span style={{ marginRight: '4px' }}>Showing filtered tasks:</span>
+                    {activeFilters.map((f) => (
+                      <span
+                        key={f.key}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          backgroundColor: 'rgba(33, 29, 58, 0.08)',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          color: '#211d3a',
+                        }}
+                      >
+                        {f.label}
+                        <button
+                          onClick={() => setFilters((prev) => ({ ...prev, [f.key]: 'all' }))}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '0 2px',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            color: '#c2542f',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            lineHeight: 1,
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setFilters((prev) => ({ ...prev, project: 'all', urgency: 'all', status: 'all' }))}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#c2542f',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      textDecoration: 'underline',
+                      textUnderlineOffset: '3px',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      transition: 'opacity 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.target.style.opacity = '0.85')}
+                    onMouseLeave={(e) => (e.target.style.opacity = '1')}
+                  >
+                    Clear all
+                  </button>
+                </div>
+              );
+            })()}
 
             {/* List Table */}
             <div style={{ overflowX: 'auto' }}>
