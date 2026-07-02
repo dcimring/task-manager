@@ -283,6 +283,7 @@ input, select, textarea, button {
   .mobile-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     position: fixed;
     top: 0;
     left: 0;
@@ -299,6 +300,24 @@ input, select, textarea, button {
     font-size: 20px;
     font-weight: 600;
     margin-left: 16px;
+  }
+  .mobile-new-task-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #d8f24a;
+    color: #211d3a;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.1s ease;
+    white-space: nowrap;
+  }
+  .mobile-new-task-btn:hover {
+    filter: brightness(0.93);
+  }
+  .mobile-new-task-btn:active {
+    transform: scale(0.97);
   }
   .hamburger-btn {
     background: none;

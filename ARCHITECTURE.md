@@ -67,7 +67,7 @@ To keep state simple and singular, views are rendered dynamically by deriving st
 
 *   **Active Filters Warning Banner**: A visual warning banner is rendered above the task list when any filter (Project, Urgency, Status) is active. It lists each active filter as an interactive chip with an individual `✕` clear button and a global "Clear all" action. This ensures the user is aware of how the list is filtered.
 *   **Vanilla CSS & Responsiveness**: Global rules, custom font embedding (Source Serif 4), keyframes (`fadeInUp`, `panelIn`), and interactive pseudo-classes are managed in `src/index.css`. Responsive breakpoints using media queries (`@media (max-width: 768px)`) adapt the layout on mobile:
-  * The desktop fixed sidebar collapses into a sliding drawer toggleable via a hamburger top bar.
+  * The desktop fixed sidebar collapses into a sliding drawer toggleable via a hamburger top bar, with the "+ New Task" action repeated on the right side of the fixed mobile header for easy task creation.
   * Multi-column layouts (Analytics stats grid) collapse into single-column vertical stacks.
   * Wide elements (Weekly report charts, Kanban board columns, task records table) auto-scroll horizontally to avoid vertical clipping or squishing.
 * **Drag-and-Drop Board**: Utilizes HTML5 drag events (`onDragStart`, `onDragOver`, `onDrop`) mapped directly to React status transition handlers.
