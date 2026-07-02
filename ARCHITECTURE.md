@@ -70,3 +70,12 @@ To keep state simple and singular, views are rendered dynamically by deriving st
   * Multi-column layouts (Analytics stats grid) collapse into single-column vertical stacks.
   * Wide elements (Weekly report charts, Kanban board columns, task records table) auto-scroll horizontally to avoid vertical clipping or squishing.
 * **Drag-and-Drop Board**: Utilizes HTML5 drag events (`onDragStart`, `onDragOver`, `onDrop`) mapped directly to React status transition handlers.
+
+### 5. Authentication & Session Management
+
+The application features a strict frontend-enforced login barrier:
+* **Google Identity Services (GIS)**: Authenticates the user using Google Sign-In. The client-side library is loaded dynamically via `https://accounts.google.com/gsi/client` inside a React `useEffect`. If `VITE_GOOGLE_CLIENT_ID` is not configured, an error is shown.
+* **Access Control**: Validates the JWT credential payload returned by Google. Only `dcimring@gmail.com` is granted entry. Other accounts trigger a visual error overlay blocking the app.
+* **Session Persistence**: Successful login details (email and name) are stored in `localStorage` as `task_manager_user`. This session is checked on mount to prevent re-authentication prompts.
+* **Logout Flow**: Logging out clears the local storage token and resets the React state, immediately triggering the login overlay.
+

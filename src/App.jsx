@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../convex/_generated/api';
 
@@ -10,6 +10,120 @@ export default function App() {
   const [editingProject, setEditingProject] = useState(null); // null or { id, name, description }
   const [weekKey, setWeekKey] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Auth State & Google Identity Services integration
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('task_manager_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [authError, setAuthError] = useState(null);
+
+  const decodeJwt = (token) => {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        window
+          .atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const handleLoginEmail = (email, name) => {
+    const allowedEmail = 'dcimring@gmail.com';
+    if (email.trim().toLowerCase() === allowedEmail) {
+      const userData = { email, name };
+      setUser(userData);
+      localStorage.setItem('task_manager_user', JSON.stringify(userData));
+      setAuthError(null);
+    } else {
+      setAuthError('Access Restricted: This account is not authorized to access this application.');
+    }
+  };
+
+
+
+  useEffect(() => {
+    if (user) return;
+
+    const id = 'google-gsi-script';
+    let script = document.getElementById(id);
+    if (!script) {
+      script = document.createElement('script');
+      script.id = id;
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+
+    const initGoogleSignIn = () => {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        setAuthError("Google Client ID is not configured. Please define VITE_GOOGLE_CLIENT_ID in your environment.");
+        return;
+      }
+
+      try {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleCredentialResponse,
+          auto_select: false,
+        });
+
+        // Small delay to make sure target container is rendered in DOM
+        setTimeout(() => {
+          const btnElement = document.getElementById('google-signin-btn');
+          if (btnElement) {
+            window.google.accounts.id.renderButton(btnElement, {
+              theme: 'outline',
+              size: 'large',
+              width: '280',
+            });
+          }
+        }, 100);
+      } catch (err) {
+        console.error("Failed to initialize Google Sign-In:", err);
+      }
+    };
+
+    const handleCredentialResponse = (response) => {
+      try {
+        const decoded = decodeJwt(response.credential);
+        if (decoded && decoded.email) {
+          handleLoginEmail(decoded.email, decoded.name || 'User');
+        } else {
+          setAuthError('Failed to parse Google login token.');
+        }
+      } catch (err) {
+        setAuthError('Authentication failed.');
+      }
+    };
+
+    script.onload = () => {
+      if (window.google?.accounts?.id) {
+        initGoogleSignIn();
+      } else {
+        setTimeout(() => {
+          if (window.google?.accounts?.id) initGoogleSignIn();
+        }, 150);
+      }
+    };
+
+    if (window.google?.accounts?.id) {
+      initGoogleSignIn();
+    }
+  }, [user]);
 
   // Load state from Convex
   const tasks = useQuery(api.tasks.get) ?? [];
@@ -399,6 +513,32 @@ export default function App() {
 
   const ringDeg = Math.round((overallCompletionRate / 100) * 360);
 
+  if (!user) {
+    return (
+      <div className="login-overlay">
+        <div className="login-card">
+          <div className="login-logo">Task Manager</div>
+          <div className="login-tagline">Personal Task Record</div>
+          
+          <h1 className="login-title">Sign In</h1>
+          <p className="login-description">
+            This is a private personal task record application. Please sign in with your authorized Google account to proceed.
+          </p>
+
+          {authError && (
+            <div className="login-error">
+              {authError}
+            </div>
+          )}
+
+          <div className="login-google-container">
+            <div id="google-signin-btn"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-layout">
       {/* Mobile Header */}
@@ -476,8 +616,24 @@ export default function App() {
             setMobileMenuOpen(false);
           }}
           className="cta-btn"
+          style={{ marginBottom: '12px' }}
         >
           + New Task
+        </button>
+
+        <button
+          onClick={() => {
+            localStorage.removeItem('task_manager_user');
+            setUser(null);
+          }}
+          className="logout-btn"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Log Out
         </button>
       </div>
 
