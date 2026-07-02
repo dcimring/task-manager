@@ -56,7 +56,7 @@ Application state is synchronized in real-time with the Convex backend using rea
 
 To keep state simple and singular, views are rendered dynamically by deriving state in real-time from the master `tasks` list:
 * **`decoratedFiltered`**: Applies status pills, urgency dot styles, overdue indicators, and date formatting to filtered tasks for rendering.
-* **Board Columns**: Transformed dynamically from statuses (`'todo'`, `'doing'`, `'done'`, `'blocked'`).
+* **Board Columns**: Transformed dynamically from statuses (`'todo'`, `'doing'`, `'blocked'`, `'done'`).
 * **Project Statistics**: Derived dynamically by counting tasks and statuses for each project to compute completion rates.
 * **Analytics**: Real-time aggregation of task averages, weekly completed rates, and completion progression bars.
 * **Weekly Report Rows**: Groups and filters completed tasks based on their corresponding monday-of-the-week key.

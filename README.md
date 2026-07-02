@@ -5,7 +5,7 @@ An elegant, modern, and real-time personal task record application built with **
 ## Features
 
 - **List View**: View and filter tasks by search query, project, status, and urgency levels.
-- **Interactive Kanban Board**: Drag and drop tasks to update statuses (`To Do`, `Doing`, `Done`, `Blocked`) in real-time.
+- **Interactive Kanban Board**: Drag and drop tasks to update statuses (`To Do`, `Doing`, `Blocked`, `Done`) in real-time.
 - **Projects Portfolio**: Track completion rates, task distributions, and project summaries dynamically.
 - **Real-Time Database Sync**: Powered by Convex for instant data synchronization across all instances.
 - **Interactive Analytics**: Monitor total task counts, average completion times, completions per project, and completions by week.

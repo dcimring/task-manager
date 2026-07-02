@@ -249,7 +249,7 @@ export default function App() {
   const decoratedFiltered = getFilteredTasks().map(decorate);
 
   const boardAccent = { todo: 'rgba(33,29,58,0.2)', doing: '#3f5f9e', done: '#357a55', blocked: secondaryAccent };
-  const boardColumns = ['todo', 'doing', 'done', 'blocked'].map((status) => ({
+  const boardColumns = ['todo', 'doing', 'blocked', 'done'].map((status) => ({
     status,
     label: statusMeta[status].label,
     count: tasks.filter((t) => t.status === status).length,
@@ -340,7 +340,7 @@ export default function App() {
     };
   });
 
-  const statusOptions = ['todo', 'doing', 'done', 'blocked'].map((s) => {
+  const statusOptions = ['todo', 'doing', 'blocked', 'done'].map((s) => {
     const active = panel && panel.draft.status === s;
     return {
       value: s,
@@ -575,8 +575,8 @@ export default function App() {
                 <option value="all">All Status</option>
                 <option value="todo">To Do</option>
                 <option value="doing">Doing</option>
-                <option value="done">Done</option>
                 <option value="blocked">Blocked</option>
+                <option value="done">Done</option>
               </select>
             </div>
 
