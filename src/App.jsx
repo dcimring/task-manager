@@ -187,6 +187,7 @@ export default function App() {
   };
 
   const getProjectStats = () => {
+    const now = new Date();
     return projects.map((p) => {
       const pt = tasks.filter((t) => t.project === p.name);
       const total = pt.length;
@@ -194,8 +195,9 @@ export default function App() {
       const doing = pt.filter((t) => t.status === 'doing').length;
       const done = pt.filter((t) => t.status === 'done').length;
       const blocked = pt.filter((t) => t.status === 'blocked').length;
+      const overdue = pt.filter((t) => t.deadline && t.status !== 'done' && new Date(t.deadline) < now).length;
       const completionRate = total ? Math.round((done / total) * 100) : 0;
-      return { ...p, total, todo, doing, done, blocked, completionRate };
+      return { ...p, total, todo, doing, done, blocked, overdue, completionRate };
     });
   };
 
@@ -356,6 +358,7 @@ export default function App() {
     const overdue = !!(t.deadline && t.status !== 'done' && new Date(t.deadline) < now);
     return {
       ...t,
+      overdue,
       urgencyLabelText: urgencyLabel[t.urgency],
       urgencyDotStyle: {
         display: 'inline-block',
@@ -439,6 +442,7 @@ export default function App() {
 
   const totalTasks = tasks.length;
   const doneTasks = tasks.filter((t) => t.status === 'done').length;
+  const totalOverdue = tasks.filter((t) => t.deadline && t.status !== 'done' && new Date(t.deadline) < new Date()).length;
   const overallCompletionRate = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const completedWithDates = tasks.filter((t) => t.status === 'done' && t.dateCompleted);
   const overallAvgDays = completedWithDates.length
@@ -760,7 +764,7 @@ export default function App() {
                   display: 'grid',
                   gridTemplateColumns: '110px 1fr 150px 110px 100px 90px',
                   gap: '14px',
-                  padding: '0 4px 12px',
+                  padding: '0 12px 12px',
                   borderBottom: '1px solid rgba(33, 29, 58, 0.18)',
                 }}
               >
@@ -772,7 +776,7 @@ export default function App() {
                 <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>ADDED</span>
               </div>
               {decoratedFiltered.map((t) => (
-                <div key={t._id} onClick={() => openEditTask(t)} className="task-row">
+                <div key={t._id} onClick={() => openEditTask(t)} className={`task-row ${t.overdue ? 'overdue' : ''}`}>
                   <span style={t.statusPillStyle}>{t.statusLabelText}</span>
                   <span
                     style={{
@@ -859,7 +863,7 @@ export default function App() {
                           draggable
                           onDragStart={(e) => dragStart(e, t._id)}
                           onClick={() => openEditTask(t)}
-                          className="board-card"
+                          className={`board-card ${t.overdue ? 'overdue' : ''}`}
                         >
                           <div
                             style={{
@@ -1008,11 +1012,14 @@ export default function App() {
                           <div style={{ fontSize: '13px', color: 'rgba(33, 29, 58, 0.55)', marginTop: '6px' }}>{p.description}</div>
                         )}
                       </div>
-                      <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'rgba(33, 29, 58, 0.55)' }}>
+                      <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'rgba(33, 29, 58, 0.55)', flexWrap: 'wrap' }}>
                         <span>{p.todo} todo</span>
                         <span>{p.doing} doing</span>
                         <span>{p.done} done</span>
                         <span>{p.blocked} blocked</span>
+                        {p.overdue > 0 && (
+                          <span style={{ color: '#c1493f', fontWeight: 'bold' }}>{p.overdue} overdue</span>
+                        )}
                       </div>
                       <div style={{ borderTop: '1px solid rgba(33, 29, 58, 0.1)', paddingTop: '16px' }}>
                         <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '44px', fontWeight: 700, lineHeight: 1 }}>
@@ -1228,6 +1235,30 @@ export default function App() {
                 </div>
                 <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '54px', fontWeight: 700, lineHeight: 1 }}>
                   {overallAvgDays}
+                </div>
+              </div>
+              <div style={{ background: '#fff', border: '1px solid rgba(33, 29, 58, 0.1)', borderRadius: '18px', padding: '28px' }}>
+                <div
+                  style={{
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                    fontSize: '10.5px',
+                    letterSpacing: '0.08em',
+                    color: 'rgba(33, 29, 58, 0.45)',
+                    marginBottom: '18px',
+                  }}
+                >
+                  OVERDUE TASKS
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontSize: '54px',
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    color: totalOverdue > 0 ? '#c1493f' : '#211d3a',
+                  }}
+                >
+                  {totalOverdue}
                 </div>
               </div>
             </div>
