@@ -15,6 +15,10 @@ jspm_packages/
 dist/
 dist-ssr/
 *.local
+.env
+.env.local
+.env.*.local
+.convex/
 
 # Editor directories and files
 .vscode/*

@@ -18,12 +18,12 @@ task-manager/
 
 ## System Architecture
 
-The application is structured as a lightweight React SPA (Single Page Application) compiled and served via Vite.
+The application is structured as a lightweight React SPA (Single Page Application) compiled and served via Vite, connected in real-time to a Convex backend.
 
 ```mermaid
 graph TD
     A[main.jsx] --> B[App.jsx]
-    B --> C[State Management]
+    B --> C[Convex Backend Hooks]
     B --> D[Layout / Sidebar Routing]
     B --> E[Views / Tabs]
     E --> F[Tasks View]
@@ -32,24 +32,25 @@ graph TD
     E --> I[Analytics View]
     E --> J[Weekly Report View]
     B --> K[Edit Task Overlay]
-    C --> L[LocalStorage Persist]
+    C --> L[(Convex Cloud Database)]
 ```
 
 ### 1. State Management
 
-The main `App` component acts as the orchestrator of application state, utilizing React's `useState` hooks. It tracks:
+Application state is synchronized in real-time with the Convex backend using reactive queries and mutations:
 * **`view`**: The current tab being displayed (e.g., `'tasks'`, `'board'`, `'projects'`, `'analytics'`, `'weekly'`).
-* **`tasks`**: Array of all task items.
-* **`projects`**: Array of all projects.
+* **`tasks`**: Synchronized real-time array from Convex.
+* **`projects`**: Synchronized real-time array from Convex.
 * **`filters`**: Local search and filter settings (search phrase, project filter, urgency level, status).
 * **`panel`**: Tracks the display and state of the edit/creation sidebar overlay.
 * **`projectForm`**: Draft fields for new project additions.
 * **`weekKey`**: Tracks the selected week in the Weekly Report.
 
-### 2. Storage and Hydration
+### 2. Storage and Database
 
-* **Seed Data**: If `localStorage` is empty, a set of default projects and tasks is automatically generated (mocked through `generateSeed`).
-* **Persistence**: Every addition, edit, status transition, or deletion triggers a call to `persist()`, updating `localStorage` under the key `tasklog_proto_v1`.
+* **Convex Cloud Backend**: Data is stored persistently in Convex.
+* **No Seed Data**: The database starts empty. When there is no data, the frontend views are designed to degrade gracefully without breaking.
+* **Mutations**: Creating, editing, updating status, and deleting tasks or projects triggers Convex mutation functions which perform transactional database updates.
 
 ### 3. Rendering and Derived State
 

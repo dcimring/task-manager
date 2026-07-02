@@ -1,45 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../convex/_generated/api';
 
 export default function App() {
   const [view, setView] = useState('tasks');
-  const [tasks, setTasks] = useState([]);
-  const [projects, setProjects] = useState([]);
   const [filters, setFilters] = useState({ search: '', project: 'all', urgency: 'all', status: 'all' });
   const [panel, setPanel] = useState(null); // null or { mode: 'new' | 'edit', draft: { ... } }
   const [projectForm, setProjectForm] = useState({ show: false, name: '', description: '' });
   const [weekKey, setWeekKey] = useState(null);
 
-  // Load state on mount
-  useEffect(() => {
-    let loaded = null;
-    try {
-      const raw = localStorage.getItem('tasklog_proto_v1');
-      if (raw) loaded = JSON.parse(raw);
-    } catch (e) {
-      console.error('Failed to load local storage state:', e);
-    }
+  // Load state from Convex
+  const tasks = useQuery(api.tasks.get) ?? [];
+  const projects = useQuery(api.projects.get) ?? [];
 
-    if (loaded && loaded.tasks && loaded.tasks.length) {
-      setTasks(loaded.tasks);
-      setProjects(loaded.projects || []);
-    } else {
-      const seed = generateSeed();
-      setTasks(seed.tasks);
-      setProjects(seed.projects);
-      persist(seed.tasks, seed.projects);
-    }
-  }, []);
-
-  const persist = (updatedTasks, updatedProjects) => {
-    try {
-      localStorage.setItem(
-        'tasklog_proto_v1',
-        JSON.stringify({ tasks: updatedTasks, projects: updatedProjects })
-      );
-    } catch (e) {
-      console.error('Failed to save to local storage:', e);
-    }
-  };
+  // Convex mutations
+  const saveTaskMutation = useMutation(api.tasks.save);
+  const removeTaskMutation = useMutation(api.tasks.remove);
+  const moveTaskStatusMutation = useMutation(api.tasks.moveStatus);
+  const createProjectMutation = useMutation(api.projects.create);
 
   // Helper date functions
   const addDays = (date, n) => {
@@ -76,58 +54,6 @@ export default function App() {
     end.setDate(end.getDate() + 6);
     const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     return fmt(start) + ' – ' + fmt(end);
-  };
-
-  const generateSeed = () => {
-    const now = new Date();
-    const seedProjects = [
-      { id: 'general', name: 'General', description: '' },
-      { id: 'p1', name: 'Website Redesign', description: 'Marketing site refresh' },
-      { id: 'p2', name: 'Q3 Planning', description: '' },
-      { id: 'p3', name: 'Personal', description: '' },
-    ];
-    const mk = (daysAgoAdded, description, project, urgency, status, startedAfter, completedAfter, deadlineDaysFromAdd) => {
-      const added = addDays(now, -daysAgoAdded);
-      const started = startedAfter != null ? addDays(added, startedAfter) : null;
-      const completed = completedAfter != null ? addDays(added, completedAfter) : null;
-      const deadline = deadlineDaysFromAdd != null ? addDays(added, deadlineDaysFromAdd) : null;
-      return {
-        id: 't' + Math.random().toString(36).slice(2, 9),
-        description,
-        project,
-        urgency,
-        status,
-        deadline: deadline ? deadline.toISOString() : null,
-        dateAdded: added.toISOString(),
-        dateStarted: started ? started.toISOString() : null,
-        dateCompleted: completed ? completed.toISOString() : null,
-      };
-    };
-    const seedTasks = [
-      mk(45, 'Audit current site analytics setup', 'Website Redesign', 'medium', 'done', 2, 6, 10),
-      mk(42, 'Draft new homepage wireframes', 'Website Redesign', 'high', 'done', 1, 5, 7),
-      mk(38, 'Finalize color palette and type system', 'Website Redesign', 'medium', 'done', 3, 9, 14),
-      mk(30, 'Migrate blog content to new CMS', 'Website Redesign', 'low', 'done', 4, 12, 20),
-      mk(24, 'Build responsive nav component', 'Website Redesign', 'high', 'doing', 2, null, 5),
-      mk(10, 'QA cross-browser testing', 'Website Redesign', 'medium', 'todo', null, null, 15),
-      mk(3, 'Write launch announcement post', 'Website Redesign', 'low', 'todo', null, null, null),
-      mk(35, 'Draft Q3 OKRs', 'Q3 Planning', 'high', 'done', 1, 4, 7),
-      mk(28, 'Review headcount plan with finance', 'Q3 Planning', 'medium', 'done', 2, 6, 10),
-      mk(20, 'Align roadmap with sales team', 'Q3 Planning', 'high', 'doing', 3, null, 4),
-      mk(12, 'Prep board deck outline', 'Q3 Planning', 'medium', 'todo', null, null, 18),
-      mk(5, 'Schedule Q3 kickoff meeting', 'Q3 Planning', 'low', 'blocked', null, null, 2),
-      mk(50, 'Renew passport', 'Personal', 'low', 'done', 0, 3, 60),
-      mk(21, 'Book dentist appointment', 'Personal', 'medium', 'done', 0, 1, 25),
-      mk(14, 'Plan weekend trip', 'Personal', 'low', 'doing', 2, null, null),
-      mk(6, 'Return library books', 'Personal', 'low', 'todo', null, null, 1),
-      mk(16, 'Fix leaking kitchen faucet', 'Personal', 'high', 'blocked', null, null, -2),
-      mk(40, 'Set up expense tracking spreadsheet', 'General', 'medium', 'done', 1, 2, null),
-      mk(18, 'Clean out inbox backlog', 'General', 'low', 'done', 0, 5, null),
-      mk(9, 'Research new project mgmt tool', 'General', 'medium', 'doing', 1, null, null),
-      mk(4, 'Reply to conference invite', 'General', 'high', 'todo', null, null, 3),
-      mk(1, 'Water office plants', 'General', 'low', 'todo', null, null, null),
-    ];
-    return { projects: seedProjects, tasks: seedTasks };
   };
 
   // State derive functions
@@ -216,66 +142,31 @@ export default function App() {
     });
   };
 
-  const saveTask = () => {
+  const saveTask = async () => {
     if (!panel || !panel.draft.description.trim()) return;
-    const now = new Date().toISOString();
     let draft = { ...panel.draft };
-    draft.project = (draft.project || '').trim() || 'General';
-    draft.deadline = draft.deadline ? new Date(draft.deadline).toISOString() : null;
-    let updatedTasks;
-    if (panel.mode === 'new') {
-      draft.id = 't' + Math.random().toString(36).slice(2, 9);
-      draft.dateAdded = now;
-      draft.dateStarted = draft.status === 'doing' || draft.status === 'done' ? now : null;
-      draft.dateCompleted = draft.status === 'done' ? now : null;
-      updatedTasks = [...tasks, draft];
-    } else {
-      updatedTasks = tasks.map((t) => {
-        if (t.id !== draft.id) return t;
-        let next = { ...t, ...draft };
-        if (draft.status === 'doing' && !t.dateStarted) next.dateStarted = now;
-        if (draft.status === 'done') {
-          if (!next.dateStarted) next.dateStarted = now;
-          if (!t.dateCompleted) next.dateCompleted = now;
-        }
-        return next;
-      });
-    }
-    let updatedProjects = projects;
-    if (!projects.some((p) => p.name === draft.project)) {
-      updatedProjects = [
-        ...projects,
-        { id: 'p' + Math.random().toString(36).slice(2, 7), name: draft.project, description: '' },
-      ];
-    }
-    setTasks(updatedTasks);
-    setProjects(updatedProjects);
-    setPanel(null);
-    persist(updatedTasks, updatedProjects);
-  };
+    const project = (draft.project || '').trim() || 'General';
+    const deadline = draft.deadline ? new Date(draft.deadline).toISOString() : null;
 
-  const deleteTask = () => {
-    if (!panel || panel.mode !== 'edit') return;
-    const updated = tasks.filter((t) => t.id !== panel.draft.id);
-    setTasks(updated);
-    setPanel(null);
-    persist(updated, projects);
-  };
-
-  const moveTaskStatus = (id, status) => {
-    const now = new Date().toISOString();
-    const updated = tasks.map((t) => {
-      if (t.id !== id) return t;
-      let next = { ...t, status };
-      if (status === 'doing' && !next.dateStarted) next.dateStarted = now;
-      if (status === 'done') {
-        if (!next.dateStarted) next.dateStarted = now;
-        if (!next.dateCompleted) next.dateCompleted = now;
-      }
-      return next;
+    await saveTaskMutation({
+      _id: panel.mode === 'edit' ? draft._id : undefined,
+      description: draft.description,
+      project,
+      urgency: draft.urgency,
+      status: draft.status,
+      deadline,
     });
-    setTasks(updated);
-    persist(updated, projects);
+    setPanel(null);
+  };
+
+  const deleteTask = async () => {
+    if (!panel || panel.mode !== 'edit') return;
+    await removeTaskMutation({ id: panel.draft._id });
+    setPanel(null);
+  };
+
+  const moveTaskStatus = async (id, status) => {
+    await moveTaskStatusMutation({ id, status });
   };
 
   const dragStart = (e, id) => {
@@ -290,20 +181,11 @@ export default function App() {
     moveTaskStatus(id, status);
   };
 
-  const addProjectQuick = () => {
+  const addProjectQuick = async () => {
     const name = projectForm.name.trim();
     if (!name) return;
-    if (projects.some((p) => p.name === name)) {
-      setProjectForm({ show: false, name: '', description: '' });
-      return;
-    }
-    const updated = [
-      ...projects,
-      { id: 'p' + Math.random().toString(36).slice(2, 7), name, description: projectForm.description },
-    ];
-    setProjects(updated);
+    await createProjectMutation({ name, description: projectForm.description });
     setProjectForm({ show: false, name: '', description: '' });
-    persist(tasks, updated);
   };
 
   const goToProjectTasks = (name) => {
@@ -656,7 +538,7 @@ export default function App() {
               >
                 <option value="all">All Projects</option>
                 {projects.map((p) => (
-                  <option key={p.id} value={p.name}>
+                  <option key={p._id} value={p.name}>
                     {p.name}
                   </option>
                 ))}
@@ -718,7 +600,7 @@ export default function App() {
                 <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>ADDED</span>
               </div>
               {decoratedFiltered.map((t) => (
-                <div key={t.id} onClick={() => openEditTask(t)} className="task-row">
+                <div key={t._id} onClick={() => openEditTask(t)} className="task-row">
                   <span style={t.statusPillStyle}>{t.statusLabelText}</span>
                   <span
                     style={{
@@ -808,9 +690,9 @@ export default function App() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '300px' }}>
                     {col.tasks.map((t) => (
                       <div
-                        key={t.id}
+                        key={t._id}
                         draggable
-                        onDragStart={(e) => dragStart(e, t.id)}
+                        onDragStart={(e) => dragStart(e, t._id)}
                         onClick={() => openEditTask(t)}
                         className="board-card"
                       >
@@ -869,7 +751,7 @@ export default function App() {
             <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginBottom: '32px' }}></div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
               {projectStats.map((p) => (
-                <div key={p.id} className="project-card">
+                <div key={p._id} className="project-card">
                   <div>
                     <div
                       style={{
@@ -1104,7 +986,7 @@ export default function App() {
               <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '22px', fontWeight: 600, marginBottom: '20px' }}>By Project</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {projectStats.map((p) => (
-                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                  <div key={p._id} style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
                     <span
                       style={{
                         width: '160px',
@@ -1247,7 +1129,9 @@ export default function App() {
             </div>
             <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginBottom: '20px' }}></div>
             <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '16px', color: 'rgba(33, 29, 58, 0.6)', marginBottom: '28px' }}>
-              {weeklyReportRows.length} task(s) completed the week of {selectedWeekKey ? weekLabel(selectedWeekKey) : 'No completed tasks yet'}
+              {selectedWeekKey
+                ? `${weeklyReportRows.length} task(s) completed the week of ${weekLabel(selectedWeekKey)}`
+                : 'No completed tasks yet'}
             </div>
 
             <div style={{ overflowX: 'auto' }}>
@@ -1271,7 +1155,7 @@ export default function App() {
               </div>
               {weeklyReportRows.map((t) => (
                 <div
-                  key={t.id}
+                  key={t._id}
                   style={{
                     minWidth: '820px',
                     display: 'grid',
@@ -1418,7 +1302,7 @@ export default function App() {
               />
               <datalist id="project-options">
                 {projects.map((p) => (
-                  <option key={p.id} value={p.name}>
+                  <option key={p._id} value={p.name}>
                     {p.name}
                   </option>
                 ))}
