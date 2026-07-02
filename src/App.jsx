@@ -427,7 +427,7 @@ export default function App() {
         <div style={{ marginBottom: '52px' }}>
           <div
             style={{
-              fontFamily: "'Source Serif 4', Georgia, serif",
+              fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: '27px',
               fontWeight: 600,
               letterSpacing: '-0.01em',
@@ -466,7 +466,7 @@ export default function App() {
                   backgroundColor: tab.active ? accent : 'transparent',
                 }}
               ></span>
-              <span style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>{tab.label}</span>
+              <span style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{tab.label}</span>
             </button>
           ))}
         </div>
@@ -513,7 +513,7 @@ export default function App() {
             >
               <div
                 style={{
-                  fontFamily: "'Source Serif 4', Georgia, serif",
+                  fontFamily: "'Playfair Display', Georgia, serif",
                   fontSize: '56px',
                   fontWeight: 600,
                   letterSpacing: '-0.015em',
@@ -631,7 +631,7 @@ export default function App() {
                   <span style={t.statusPillStyle}>{t.statusLabelText}</span>
                   <span
                     style={{
-                      fontFamily: "'Source Serif 4', Georgia, serif",
+                      fontFamily: 'inherit',
                       fontSize: '16px',
                       color: '#211d3a',
                       overflow: 'hidden',
@@ -657,7 +657,7 @@ export default function App() {
                     textAlign: 'center',
                     color: 'rgba(33, 29, 58, 0.4)',
                     fontSize: '15px',
-                    fontFamily: "'Source Serif 4', Georgia, serif",
+                    fontFamily: "'Playfair Display', Georgia, serif",
                   }}
                 >
                   No tasks match these filters.
@@ -683,7 +683,7 @@ export default function App() {
             </div>
             <div
               style={{
-                fontFamily: "'Source Serif 4', Georgia, serif",
+                fontFamily: "'Playfair Display', Georgia, serif",
                 fontSize: '56px',
                 fontWeight: 600,
                 letterSpacing: '-0.015em',
@@ -711,7 +711,7 @@ export default function App() {
                       borderBottom: `2px solid ${col.accentColor}`,
                     }}
                   >
-                    <span style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '17px', fontWeight: 600 }}>{col.label}</span>
+                    <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '17px', fontWeight: 600 }}>{col.label}</span>
                     <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.4)' }}>{col.count}</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '300px' }}>
@@ -725,7 +725,7 @@ export default function App() {
                       >
                         <div
                           style={{
-                            fontFamily: "'Source Serif 4', Georgia, serif",
+                            fontFamily: 'inherit',
                             fontSize: '14.5px',
                             color: '#211d3a',
                             marginBottom: '10px',
@@ -766,7 +766,7 @@ export default function App() {
             </div>
             <div
               style={{
-                fontFamily: "'Source Serif 4', Georgia, serif",
+                fontFamily: "'Playfair Display', Georgia, serif",
                 fontSize: '56px',
                 fontWeight: 600,
                 letterSpacing: '-0.015em',
@@ -872,7 +872,7 @@ export default function App() {
                         >
                           PROJECT
                         </div>
-                        <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '25px', fontWeight: 600 }}>{p.name}</div>
+                        <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '25px', fontWeight: 600 }}>{p.name}</div>
                         {p.hasDescription && (
                           <div style={{ fontSize: '13px', color: 'rgba(33, 29, 58, 0.55)', marginTop: '6px' }}>{p.description}</div>
                         )}
@@ -884,7 +884,7 @@ export default function App() {
                         <span>{p.blocked} blocked</span>
                       </div>
                       <div style={{ borderTop: '1px solid rgba(33, 29, 58, 0.1)', paddingTop: '16px' }}>
-                        <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '44px', fontWeight: 700, lineHeight: 1 }}>
+                        <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '44px', fontWeight: 700, lineHeight: 1 }}>
                           {p.completionRate}%
                         </div>
                         <div
@@ -906,7 +906,7 @@ export default function App() {
                             background: 'none',
                             border: 'none',
                             padding: 0,
-                            fontFamily: "'Source Serif 4', Georgia, serif",
+                            fontFamily: "'Playfair Display', Georgia, serif",
                             fontSize: '14px',
                             fontWeight: 600,
                             color: '#211d3a',
@@ -923,7 +923,7 @@ export default function App() {
                             background: 'none',
                             border: 'none',
                             padding: 0,
-                            fontFamily: "'Source Serif 4', Georgia, serif",
+                            fontFamily: "'Playfair Display', Georgia, serif",
                             fontSize: '14px',
                             fontWeight: 600,
                             color: 'rgba(33, 29, 58, 0.55)',
@@ -989,7 +989,7 @@ export default function App() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      fontFamily: "'Source Serif 4', Georgia, serif",
+                      fontFamily: "'Playfair Display', Georgia, serif",
                       fontSize: '15px',
                       color: 'rgba(33, 29, 58, 0.5)',
                       cursor: 'pointer',
@@ -1019,7 +1019,7 @@ export default function App() {
             </div>
             <div
               style={{
-                fontFamily: "'Source Serif 4', Georgia, serif",
+                fontFamily: "'Playfair Display', Georgia, serif",
                 fontSize: '56px',
                 fontWeight: 600,
                 letterSpacing: '-0.015em',
@@ -1055,7 +1055,7 @@ export default function App() {
                       justifyContent: 'center',
                     }}
                   >
-                    <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '30px', fontWeight: 700, color: '#f7f2e8' }}>
+                    <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '30px', fontWeight: 700, color: '#f7f2e8' }}>
                       {overallCompletionRate}%
                     </div>
                   </div>
@@ -1072,7 +1072,7 @@ export default function App() {
                   >
                     COMPLETION RATE
                   </div>
-                  <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '15px', color: '#f7f2e8' }}>Across all projects</div>
+                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '15px', color: '#f7f2e8' }}>Across all projects</div>
                 </div>
               </div>
               <div style={{ background: '#fff', border: '1px solid rgba(33, 29, 58, 0.1)', borderRadius: '18px', padding: '28px' }}>
@@ -1087,7 +1087,7 @@ export default function App() {
                 >
                   TOTAL TASKS
                 </div>
-                <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '54px', fontWeight: 700, lineHeight: 1 }}>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '54px', fontWeight: 700, lineHeight: 1 }}>
                   {totalTasks}
                 </div>
               </div>
@@ -1103,7 +1103,7 @@ export default function App() {
                 >
                   AVG DAYS TO COMPLETE
                 </div>
-                <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '54px', fontWeight: 700, lineHeight: 1 }}>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '54px', fontWeight: 700, lineHeight: 1 }}>
                   {overallAvgDays}
                 </div>
               </div>
@@ -1111,7 +1111,7 @@ export default function App() {
 
             {/* By Project Stats */}
             <div style={{ marginBottom: '48px' }}>
-              <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '22px', fontWeight: 600, marginBottom: '20px' }}>By Project</div>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '22px', fontWeight: 600, marginBottom: '20px' }}>By Project</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {projectStats.map((p) => (
                   <div key={p._id} style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
@@ -1119,7 +1119,7 @@ export default function App() {
                       style={{
                         width: '160px',
                         flexShrink: 0,
-                        fontFamily: "'Source Serif 4', Georgia, serif",
+                        fontFamily: "'Playfair Display', Georgia, serif",
                         fontSize: '15px',
                         fontWeight: 600,
                         overflow: 'hidden',
@@ -1151,7 +1151,7 @@ export default function App() {
 
             {/* Completed by Week Bar Chart */}
             <div>
-              <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '22px', fontWeight: 600, marginBottom: '20px' }}>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '22px', fontWeight: 600, marginBottom: '20px' }}>
                 Completed by Week
               </div>
               <div
@@ -1223,7 +1223,7 @@ export default function App() {
             >
               <div
                 style={{
-                  fontFamily: "'Source Serif 4', Georgia, serif",
+                  fontFamily: "'Playfair Display', Georgia, serif",
                   fontSize: '56px',
                   fontWeight: 600,
                   letterSpacing: '-0.015em',
@@ -1256,7 +1256,7 @@ export default function App() {
               </div>
             </div>
             <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginBottom: '20px' }}></div>
-            <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '16px', color: 'rgba(33, 29, 58, 0.6)', marginBottom: '28px' }}>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '16px', color: 'rgba(33, 29, 58, 0.6)', marginBottom: '28px' }}>
               {selectedWeekKey
                 ? `${weeklyReportRows.length} task(s) completed the week of ${weekLabel(selectedWeekKey)}`
                 : 'No completed tasks yet'}
@@ -1294,7 +1294,7 @@ export default function App() {
                     borderBottom: '1px solid rgba(33, 29, 58, 0.08)',
                   }}
                 >
-                  <span style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '15px' }}>{t.description}</span>
+                  <span style={{ fontFamily: 'inherit', fontSize: '15px' }}>{t.description}</span>
                   <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11.5px', color: 'rgba(33, 29, 58, 0.55)' }}>{t.project}</span>
                   <span style={{ fontSize: '12.5px', color: 'rgba(33, 29, 58, 0.5)' }}>{t.dateAddedFmt}</span>
                   <span style={{ fontSize: '12.5px', color: 'rgba(33, 29, 58, 0.5)' }}>{t.dateStartedFmt}</span>
@@ -1310,7 +1310,7 @@ export default function App() {
                     textAlign: 'center',
                     color: 'rgba(33, 29, 58, 0.4)',
                     fontSize: '15px',
-                    fontFamily: "'Source Serif 4', Georgia, serif",
+                    fontFamily: "'Playfair Display', Georgia, serif",
                   }}
                 >
                   No tasks completed this week.
@@ -1354,7 +1354,7 @@ export default function App() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: '26px', fontWeight: 600 }}>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '26px', fontWeight: 600 }}>
                 {panel.mode === 'edit' ? 'Edit Task' : 'New Task'}
               </div>
               <button
@@ -1395,7 +1395,7 @@ export default function App() {
                   borderRadius: '9px',
                   border: '1px solid rgba(33, 29, 58, 0.18)',
                   fontSize: '15px',
-                  fontFamily: "'Source Serif 4', Georgia, serif",
+                  fontFamily: 'inherit',
                   resize: 'vertical',
                   outline: 'none',
                 }}
