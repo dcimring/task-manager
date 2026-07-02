@@ -44,6 +44,7 @@ Application state is synchronized in real-time with the Convex backend using rea
 * **`filters`**: Local search and filter settings (search phrase, project filter, urgency level, status).
 * **`panel`**: Tracks the display and state of the edit/creation sidebar overlay.
 * **`projectForm`**: Draft fields for new project additions.
+* **`editingProject`**: Draft fields (id, name, description) for editing an existing project.
 * **`weekKey`**: Tracks the selected week in the Weekly Report.
 
 ### 2. Storage and Database
