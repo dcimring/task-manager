@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #211d3a;
+  min-height: 100vh;
+}
+
+input, select, textarea, button {
+  font-family: inherit;
+}
+
+::placeholder {
+  color: rgba(33, 29, 58, 0.35);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(33, 29, 58, 0.18);
+  border-radius: 4px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes panelIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Custom Interactive Style Classes */
+.sidebar-tab {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 11px 8px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15.5px;
+  cursor: pointer;
+  background: none;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.sidebar-tab.active {
+  color: #f7f2e8;
+  font-weight: 600;
+}
+
+.sidebar-tab.inactive {
+  color: rgba(247, 242, 232, 0.55);
+  font-weight: 400;
+}
+
+.sidebar-tab.inactive:hover {
+  color: rgba(247, 242, 232, 0.85);
+  background-color: rgba(247, 242, 232, 0.05);
+}
+
+.cta-btn {
+  padding: 12px 20px;
+  border-radius: 9px;
+  border: none;
+  background: #d8f24a;
+  color: #211d3a;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+  transition: filter 0.15s ease;
+  text-align: center;
+}
+
+.cta-btn:hover {
+  filter: brightness(0.93);
+}
+
+.task-row {
+  min-width: 760px;
+  display: grid;
+  grid-template-columns: 110px 1fr 150px 110px 100px 90px;
+  gap: 14px;
+  align-items: center;
+  padding: 16px 4px;
+  border-bottom: 1px solid rgba(33, 29, 58, 0.08);
+  cursor: pointer;
+  background: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.task-row:hover {
+  background-color: rgba(33, 29, 58, 0.03);
+}
+
+.board-card {
+  background: #fff;
+  border: 1px solid rgba(33, 29, 58, 0.1);
+  border-radius: 10px;
+  padding: 14px;
+  cursor: grab;
+  box-shadow: 0 1px 2px rgba(33, 29, 58, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.board-card:hover {
+  box-shadow: 0 8px 18px rgba(33, 29, 58, 0.12);
+  transform: translateY(-2px);
+  border-color: rgba(33, 29, 58, 0.18);
+}
+
+.project-card {
+  background: #fff;
+  border: 1px solid rgba(33, 29, 58, 0.1);
+  border-radius: 16px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 2px 10px rgba(33, 29, 58, 0.04);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.project-card:hover {
+  box-shadow: 0 10px 26px rgba(33, 29, 58, 0.1);
+  border-color: rgba(33, 29, 58, 0.18);
+}
