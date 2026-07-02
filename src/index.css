@@ -101,6 +101,24 @@ input, select, textarea, button {
   filter: brightness(0.93);
 }
 
+.task-table-header {
+  min-width: 760px;
+  display: grid;
+  grid-template-columns: 110px 1fr 150px 110px 100px 90px;
+  gap: 14px;
+  padding: 0 12px 12px;
+  border-bottom: 1px solid rgba(33, 29, 58, 0.18);
+}
+
+.task-desc {
+  font-family: inherit;
+  font-size: 16px;
+  color: #211d3a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .task-row {
   min-width: 760px;
   display: grid;
@@ -342,6 +360,14 @@ input, select, textarea, button {
   .task-panel {
     padding: 24px 16px;
     gap: 16px;
+  }
+  .task-table-header,
+  .task-row {
+    min-width: 980px;
+    grid-template-columns: 85px 1fr 150px 110px 100px 90px;
+  }
+  .task-desc {
+    font-size: 13px;
   }
 }
 

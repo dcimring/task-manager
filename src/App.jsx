@@ -864,16 +864,7 @@ export default function App() {
 
             {/* List Table */}
             <div style={{ overflowX: 'auto' }}>
-              <div
-                style={{
-                  minWidth: '760px',
-                  display: 'grid',
-                  gridTemplateColumns: '110px 1fr 150px 110px 100px 90px',
-                  gap: '14px',
-                  padding: '0 12px 12px',
-                  borderBottom: '1px solid rgba(33, 29, 58, 0.18)',
-                }}
-              >
+              <div className="task-table-header">
                 <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>STATUS</span>
                 <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>TASK</span>
                 <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>PROJECT</span>
@@ -884,16 +875,7 @@ export default function App() {
               {decoratedFiltered.map((t) => (
                 <div key={t._id} onClick={() => openEditTask(t)} className={`task-row ${t.overdue ? 'overdue' : ''}`}>
                   <span style={t.statusPillStyle}>{t.statusLabelText}</span>
-                  <span
-                    style={{
-                      fontFamily: 'inherit',
-                      fontSize: '16px',
-                      color: '#211d3a',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
+                  <span className="task-desc">
                     {t.description}
                   </span>
                   <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11.5px', color: 'rgba(33, 29, 58, 0.55)' }}>{t.project}</span>
