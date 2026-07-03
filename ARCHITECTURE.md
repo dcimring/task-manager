@@ -66,7 +66,7 @@ To keep state simple and singular, views are rendered dynamically by deriving st
 * **`decoratedFiltered`**: Applies status pills, urgency dot styles, overdue indicators, and date formatting to filtered tasks for rendering on the Tasks tab.
 * **Board Columns**: Transformed dynamically from statuses (`'todo'`, `'doing'`, `'blocked'`, `'done'`).
 * **Project Statistics**: Derived dynamically by counting tasks and statuses for each project to compute completion rates.
-* **Analytics**: Real-time aggregation of task averages, weekly completed rates, and completion progression bars.
+* **Analytics**: Real-time aggregation of overall completion rate, total tasks, average days to complete, overdue tasks, and blocked tasks.
 * **Weekly Report Rows**: Groups and filters completed tasks based on their corresponding monday-of-the-week key.
 
 ### 4. Interactive Components & Styling

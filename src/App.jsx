@@ -550,6 +550,7 @@ export default function App() {
   const totalTasks = tasks.length;
   const doneTasks = tasks.filter((t) => t.status === 'done').length;
   const totalOverdue = tasks.filter((t) => t.deadline && t.status !== 'done' && new Date(t.deadline) < new Date()).length;
+  const totalBlocked = tasks.filter((t) => t.status === 'blocked').length;
   const overallCompletionRate = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const completedWithDates = tasks.filter((t) => t.status === 'done' && t.dateCompleted);
   const overallAvgDays = completedWithDates.length
@@ -1791,6 +1792,30 @@ export default function App() {
                   }}
                 >
                   {totalOverdue}
+                </div>
+              </div>
+              <div style={{ background: '#fff', border: '1px solid rgba(33, 29, 58, 0.1)', borderRadius: '18px', padding: '28px' }}>
+                <div
+                  style={{
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                    fontSize: '10.5px',
+                    letterSpacing: '0.08em',
+                    color: 'rgba(33, 29, 58, 0.45)',
+                    marginBottom: '18px',
+                  }}
+                >
+                  BLOCKED TASKS
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontSize: '54px',
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    color: totalBlocked > 0 ? '#a83c33' : '#211d3a',
+                  }}
+                >
+                  {totalBlocked}
                 </div>
               </div>
             </div>
