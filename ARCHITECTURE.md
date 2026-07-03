@@ -53,7 +53,7 @@ Application state is synchronized in real-time with the Convex backend using rea
 
 * **Convex Cloud Backend**: Data is stored persistently in Convex.
 * **No Seed Data**: The database starts empty. When there is no data, the frontend views are designed to degrade gracefully without breaking.
-* **Mutations**: Creating, editing, updating status, and deleting tasks or projects triggers Convex mutation functions which perform transactional database updates.
+* **Mutations**: Creating, editing, updating status, and deleting tasks or projects triggers Convex mutation functions which perform transactional database updates. For tasks with a configured recurrence (`weekly` or `monthly`), completing the task automatically computes the next deadline (+7 days or +1 month) and inserts a new cloned task in the `"todo"` status.
 
 ### 3. Rendering and Derived State
 

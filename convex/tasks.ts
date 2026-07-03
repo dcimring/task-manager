@@ -8,6 +8,40 @@ export const get = query({
   },
 });
 
+function calculateNextDeadline(recurrence: string, currentDeadlineStr: string): string {
+  const baseDate = new Date(currentDeadlineStr);
+  if (recurrence === "weekly") {
+    const nextDate = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return nextDate.toISOString();
+  } else if (recurrence === "monthly") {
+    const year = baseDate.getUTCFullYear();
+    const month = baseDate.getUTCMonth();
+    const day = baseDate.getUTCDate();
+
+    let targetYear = year;
+    let targetMonth = month + 1;
+    if (targetMonth > 11) {
+      targetMonth = 0;
+      targetYear += 1;
+    }
+
+    const maxDays = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+    const finalDay = Math.min(day, maxDays);
+
+    const nextDate = new Date(Date.UTC(
+      targetYear,
+      targetMonth,
+      finalDay,
+      baseDate.getUTCHours(),
+      baseDate.getUTCMinutes(),
+      baseDate.getUTCSeconds(),
+      baseDate.getUTCMilliseconds()
+    ));
+    return nextDate.toISOString();
+  }
+  throw new Error(`Unsupported recurrence type: ${recurrence}`);
+}
+
 export const save = mutation({
   args: {
     _id: v.optional(v.id("tasks")),
@@ -16,6 +50,7 @@ export const save = mutation({
     urgency: v.string(),
     status: v.string(),
     deadline: v.union(v.string(), v.null()),
+    recurrence: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
@@ -56,25 +91,61 @@ export const save = mutation({
         urgency: data.urgency,
         status: data.status,
         deadline: data.deadline,
+        recurrence: data.recurrence || null,
         dateStarted,
         dateCompleted,
       });
+
+      // Clone task if completed and recurrence is configured with a deadline
+      if (data.status === "done" && existing.status !== "done" && data.recurrence && data.deadline) {
+        const nextDeadline = calculateNextDeadline(data.recurrence, data.deadline);
+        await ctx.db.insert("tasks", {
+          description: data.description,
+          project: projectName,
+          urgency: data.urgency,
+          status: "todo",
+          deadline: nextDeadline,
+          recurrence: data.recurrence,
+          dateAdded: now,
+          dateStarted: null,
+          dateCompleted: null,
+        });
+      }
+
       return _id;
     } else {
       const dateAdded = now;
       const dateStarted = data.status === "doing" || data.status === "done" ? now : null;
       const dateCompleted = data.status === "done" ? now : null;
 
-      return await ctx.db.insert("tasks", {
+      const newTaskId = await ctx.db.insert("tasks", {
         description: data.description,
         project: projectName,
         urgency: data.urgency,
         status: data.status,
         deadline: data.deadline,
+        recurrence: data.recurrence || null,
         dateAdded,
         dateStarted,
         dateCompleted,
       });
+
+      if (data.status === "done" && data.recurrence && data.deadline) {
+        const nextDeadline = calculateNextDeadline(data.recurrence, data.deadline);
+        await ctx.db.insert("tasks", {
+          description: data.description,
+          project: projectName,
+          urgency: data.urgency,
+          status: "todo",
+          deadline: nextDeadline,
+          recurrence: data.recurrence,
+          dateAdded: now,
+          dateStarted: null,
+          dateCompleted: null,
+        });
+      }
+
+      return newTaskId;
     }
   },
 });
@@ -112,5 +183,21 @@ export const moveStatus = mutation({
       dateStarted,
       dateCompleted,
     });
+
+    // Check recurrence and generate next task
+    if (args.status === "done" && existing.status !== "done" && existing.recurrence && existing.deadline) {
+      const nextDeadline = calculateNextDeadline(existing.recurrence, existing.deadline);
+      await ctx.db.insert("tasks", {
+        description: existing.description,
+        project: existing.project,
+        urgency: existing.urgency,
+        status: "todo",
+        deadline: nextDeadline,
+        recurrence: existing.recurrence,
+        dateAdded: now,
+        dateStarted: null,
+        dateCompleted: null,
+      });
+    }
   },
 });

@@ -272,14 +272,14 @@ export default function App() {
   const openNewTask = () => {
     setPanel({
       mode: 'new',
-      draft: { description: '', project: '', urgency: 'medium', deadline: '', status: 'todo' },
+      draft: { description: '', project: '', urgency: 'medium', deadline: '', status: 'todo', recurrence: null },
     });
   };
 
   const openEditTask = (task) => {
     setPanel({
       mode: 'edit',
-      draft: { ...task, deadline: task.deadline ? task.deadline.slice(0, 10) : '' },
+      draft: { ...task, deadline: task.deadline ? task.deadline.slice(0, 10) : '', recurrence: task.recurrence || null },
     });
   };
 
@@ -299,8 +299,16 @@ export default function App() {
   const saveTask = async () => {
     if (!panel || !panel.draft.description.trim()) return;
     let draft = { ...panel.draft };
+
+    // Validate that deadline is provided if task is recurring
+    if (draft.recurrence && draft.recurrence !== 'none' && !draft.deadline) {
+      alert("A deadline is required for recurring tasks.");
+      return;
+    }
+
     const project = (draft.project || '').trim() || 'General';
     const deadline = draft.deadline ? new Date(draft.deadline).toISOString() : null;
+    const recurrence = (draft.recurrence && draft.recurrence !== 'none') ? draft.recurrence : null;
 
     await saveTaskMutation({
       _id: panel.mode === 'edit' ? draft._id : undefined,
@@ -309,6 +317,7 @@ export default function App() {
       urgency: draft.urgency,
       status: draft.status,
       deadline,
+      recurrence,
     });
     setPanel(null);
   };
@@ -649,11 +658,12 @@ export default function App() {
         description: panel.draft.description,
         project: panel.draft.project,
         deadline: panel.draft.deadline,
+        recurrence: panel.draft.recurrence || null,
         addedFmt: panel.mode === 'edit' ? fmtDate(panel.draft.dateAdded) : null,
         startedFmt: panel.mode === 'edit' ? fmtDate(panel.draft.dateStarted) : null,
         completedFmt: panel.mode === 'edit' ? fmtDate(panel.draft.dateCompleted) : null,
       }
-    : { description: '', project: '', deadline: '' };
+    : { description: '', project: '', deadline: '', recurrence: null };
 
   const ringDeg = Math.round((overallCompletionRate / 100) * 360);
 
@@ -858,7 +868,31 @@ export default function App() {
                   {focusOverdue.map((t) => (
                     <div key={t._id} onClick={() => openEditTask(t)} className="focus-task-card">
                       <div style={{ fontSize: '15px', fontWeight: 500, color: '#211d3a', marginBottom: '8px', lineHeight: 1.4 }}>
-                        {t.description}
+                        <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                        {t.recurrence && (
+                          <span style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '2px',
+                            marginLeft: '6px',
+                            fontSize: '8.5px',
+                            color: '#6b4fbb',
+                            backgroundColor: 'rgba(107, 79, 187, 0.08)',
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            fontWeight: '700',
+                            verticalAlign: 'middle',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="23 4 23 10 17 10"></polyline>
+                              <polyline points="1 20 1 14 7 14"></polyline>
+                              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            {t.recurrence}
+                          </span>
+                        )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                         <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.5)' }}>
@@ -926,7 +960,31 @@ export default function App() {
                   {focusUpcoming.map((t) => (
                     <div key={t._id} onClick={() => openEditTask(t)} className="focus-task-card">
                       <div style={{ fontSize: '15px', fontWeight: 500, color: '#211d3a', marginBottom: '8px', lineHeight: 1.4 }}>
-                        {t.description}
+                        <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                        {t.recurrence && (
+                          <span style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '2px',
+                            marginLeft: '6px',
+                            fontSize: '8.5px',
+                            color: '#6b4fbb',
+                            backgroundColor: 'rgba(107, 79, 187, 0.08)',
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            fontWeight: '700',
+                            verticalAlign: 'middle',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="23 4 23 10 17 10"></polyline>
+                              <polyline points="1 20 1 14 7 14"></polyline>
+                              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            {t.recurrence}
+                          </span>
+                        )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                         <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.5)' }}>
@@ -992,7 +1050,31 @@ export default function App() {
                   {focusBlocked.map((t) => (
                     <div key={t._id} onClick={() => openEditTask(t)} className="focus-task-card">
                       <div style={{ fontSize: '15px', fontWeight: 500, color: '#211d3a', marginBottom: '8px', lineHeight: 1.4 }}>
-                        {t.description}
+                        <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                        {t.recurrence && (
+                          <span style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '2px',
+                            marginLeft: '6px',
+                            fontSize: '8.5px',
+                            color: '#6b4fbb',
+                            backgroundColor: 'rgba(107, 79, 187, 0.08)',
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            fontWeight: '700',
+                            verticalAlign: 'middle',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="23 4 23 10 17 10"></polyline>
+                              <polyline points="1 20 1 14 7 14"></polyline>
+                              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            {t.recurrence}
+                          </span>
+                        )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: t.deadline ? '8px' : '0px' }}>
                         <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.5)' }}>
@@ -1077,7 +1159,31 @@ export default function App() {
                   {focusSuggested.map((t) => (
                     <div key={t._id} onClick={() => openEditTask(t)} className="focus-task-card">
                       <div style={{ fontSize: '15px', fontWeight: 500, color: '#211d3a', marginBottom: '8px', lineHeight: 1.4 }}>
-                        {t.description}
+                        <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                        {t.recurrence && (
+                          <span style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '2px',
+                            marginLeft: '6px',
+                            fontSize: '8.5px',
+                            color: '#6b4fbb',
+                            backgroundColor: 'rgba(107, 79, 187, 0.08)',
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            fontWeight: '700',
+                            verticalAlign: 'middle',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="23 4 23 10 17 10"></polyline>
+                              <polyline points="1 20 1 14 7 14"></polyline>
+                              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            {t.recurrence}
+                          </span>
+                        )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
                         <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.5)' }}>
@@ -1352,7 +1458,31 @@ export default function App() {
                 <div key={t._id} onClick={() => openEditTask(t)} className={`task-row ${t.overdue ? 'overdue' : ''}`}>
                   <span style={t.statusPillStyle}>{t.statusLabelText}</span>
                   <span className="task-desc">
-                    {t.description}
+                    <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                    {t.recurrence && (
+                      <span style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '3px',
+                        marginLeft: '8px',
+                        fontSize: '9.5px',
+                        color: '#6b4fbb',
+                        backgroundColor: 'rgba(107, 79, 187, 0.08)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontWeight: '700',
+                        verticalAlign: 'middle',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                      }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="23 4 23 10 17 10"></polyline>
+                          <polyline points="1 20 1 14 7 14"></polyline>
+                          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        {t.recurrence}
+                      </span>
+                    )}
                   </span>
                   <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11.5px', color: 'rgba(33, 29, 58, 0.55)' }}>{t.project}</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: 'rgba(33, 29, 58, 0.65)' }}>
@@ -1438,7 +1568,31 @@ export default function App() {
                               lineHeight: 1.4,
                             }}
                           >
-                            {t.description}
+                            <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                            {t.recurrence && (
+                              <span style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '2px',
+                                marginLeft: '6px',
+                                fontSize: '8.5px',
+                                color: '#6b4fbb',
+                                backgroundColor: 'rgba(107, 79, 187, 0.08)',
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                fontWeight: '700',
+                                verticalAlign: 'middle',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.04em',
+                              }}>
+                                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="23 4 23 10 17 10"></polyline>
+                                  <polyline points="1 20 1 14 7 14"></polyline>
+                                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                                {t.recurrence}
+                              </span>
+                            )}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContext: 'space-between', justifyContent: 'space-between' }}>
                             <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', color: 'rgba(33, 29, 58, 0.5)' }}>{t.project}</span>
@@ -2129,6 +2283,8 @@ export default function App() {
                 placeholder="General"
                 style={{
                   width: '100%',
+                  height: '41px',
+                  boxSizing: 'border-box',
                   padding: '10px 13px',
                   borderRadius: '9px',
                   border: '1px solid rgba(33, 29, 58, 0.18)',
@@ -2181,9 +2337,17 @@ export default function App() {
               <input
                 type="date"
                 value={panelView.deadline}
-                onChange={(e) => updateDraft('deadline', e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateDraft('deadline', val);
+                  if (!val) {
+                    updateDraft('recurrence', null);
+                  }
+                }}
                 style={{
                   width: '100%',
+                  height: '41px',
+                  boxSizing: 'border-box',
                   padding: '10px 13px',
                   borderRadius: '9px',
                   border: '1px solid rgba(33, 29, 58, 0.18)',
@@ -2191,6 +2355,57 @@ export default function App() {
                   outline: 'none',
                 }}
               />
+            </div>
+
+            <div>
+              <div
+                style={{
+                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                  fontSize: '10.5px',
+                  letterSpacing: '0.08em',
+                  color: 'rgba(33, 29, 58, 0.45)',
+                  marginBottom: '7px',
+                }}
+              >
+                REPEAT (REQUIRES DEADLINE)
+              </div>
+              <select
+                value={panelView.recurrence || 'none'}
+                disabled={!panelView.deadline}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateDraft('recurrence', val === 'none' ? null : val);
+                }}
+                style={{
+                  width: '100%',
+                  height: '41px',
+                  boxSizing: 'border-box',
+                  padding: '10px 13px',
+                  borderRadius: '9px',
+                  border: '1px solid rgba(33, 29, 58, 0.18)',
+                  fontSize: '14px',
+                  outline: 'none',
+                  backgroundColor: panelView.deadline ? '#fff' : 'rgba(33, 29, 58, 0.05)',
+                  color: panelView.deadline ? '#211d3a' : 'rgba(33, 29, 58, 0.45)',
+                  cursor: panelView.deadline ? 'pointer' : 'not-allowed',
+                }}
+              >
+                <option value="none">No Repeat</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              {!panelView.deadline && (
+                <div
+                  style={{
+                    fontSize: '11px',
+                    color: 'rgba(33, 29, 58, 0.45)',
+                    marginTop: '5px',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  Set a deadline date to enable repeat options.
+                </div>
+              )}
             </div>
 
             <div>
