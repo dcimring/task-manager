@@ -137,7 +137,12 @@ export default function App() {
 
     const checkForUpdates = async () => {
       try {
-        const response = await fetch(`/version.json?t=${Date.now()}`);
+        const response = await fetch(`/version.json?t=${Date.now()}`, {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         if (!response.ok) return;
         const data = await response.json();
 
@@ -153,7 +158,18 @@ export default function App() {
 
     checkForUpdates();
     const interval = setInterval(checkForUpdates, checkInterval);
-    return () => clearInterval(interval);
+
+    const handleFocus = () => {
+      checkForUpdates();
+    };
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, []);
 
   // Load state from Convex
