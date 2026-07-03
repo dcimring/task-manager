@@ -4,7 +4,7 @@ import { api } from '../convex/_generated/api';
 
 export default function App() {
   const [view, setView] = useState('focus');
-  const [filters, setFilters] = useState({ search: '', project: 'all', urgency: 'all', status: 'all' });
+  const [filters, setFilters] = useState({ search: '', project: 'all', urgency: 'all', status: 'active' });
   const [panel, setPanel] = useState(null); // null or { mode: 'new' | 'edit', draft: { ... } }
   const [projectForm, setProjectForm] = useState({ show: false, name: '', description: '' });
   const [editingProject, setEditingProject] = useState(null); // null or { id, name, description }
@@ -179,7 +179,11 @@ export default function App() {
       .filter((t) => {
         if (filters.project !== 'all' && t.project !== filters.project) return false;
         if (filters.urgency !== 'all' && t.urgency !== filters.urgency) return false;
-        if (filters.status !== 'all' && t.status !== filters.status) return false;
+        if (filters.status === 'active') {
+          if (t.status === 'done') return false;
+        } else if (filters.status !== 'all' && t.status !== filters.status) {
+          return false;
+        }
         if (filters.search && !t.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
         return true;
       })
@@ -334,7 +338,7 @@ export default function App() {
 
   const goToProjectTasks = (name) => {
     setView('tasks');
-    setFilters((f) => ({ ...f, project: name, status: 'all', urgency: 'all', search: '' }));
+    setFilters((f) => ({ ...f, project: name, status: 'active', urgency: 'all', search: '' }));
   };
 
   // Rendering Helpers & Variables
@@ -1109,6 +1113,7 @@ export default function App() {
                   color: '#211d3a',
                 }}
               >
+                <option value="active">Active Tasks</option>
                 <option value="all">All Status</option>
                 <option value="todo">To Do</option>
                 <option value="doing">Doing</option>
@@ -1122,8 +1127,8 @@ export default function App() {
               const activeFilters = [];
               if (filters.project !== 'all') activeFilters.push({ key: 'project', label: `Project: ${filters.project}` });
               if (filters.urgency !== 'all') activeFilters.push({ key: 'urgency', label: `Urgency: ${filters.urgency}` });
-              if (filters.status !== 'all') {
-                const statusLabels = { todo: 'To Do', doing: 'Doing', blocked: 'Blocked', done: 'Done' };
+              if (filters.status !== 'active') {
+                const statusLabels = { all: 'All Status', todo: 'To Do', doing: 'Doing', blocked: 'Blocked', done: 'Done' };
                 activeFilters.push({ key: 'status', label: `Status: ${statusLabels[filters.status] || filters.status}` });
               }
               if (activeFilters.length === 0) return null;

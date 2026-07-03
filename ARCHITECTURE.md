@@ -42,7 +42,7 @@ Application state is synchronized in real-time with the Convex backend using rea
 * **`view`**: The current tab being displayed (e.g., `'focus'`, `'tasks'`, `'board'`, `'projects'`, `'analytics'`, `'weekly'`).
 * **`tasks`**: Synchronized real-time array from Convex.
 * **`projects`**: Synchronized real-time array from Convex.
-* **`filters`**: Local search and filter settings (search phrase, project filter, urgency level, status).
+* **`filters`**: Local search and filter settings (search phrase, project filter, urgency level, status defaulting to `'active'` to hide Done tasks by default).
 * **`panel`**: Tracks the display and state of the edit/creation sidebar overlay.
 * **`projectForm`**: Draft fields for new project additions.
 * **`editingProject`**: Draft fields (id, name, description) for editing an existing project.
