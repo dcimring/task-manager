@@ -475,4 +475,78 @@ input, select, textarea, button {
   background-color: rgba(247, 242, 232, 0.05);
 }
 
+/* Focus View Styles */
+.focus-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.focus-column {
+  display: flex;
+  flex-direction: column;
+  background: rgba(33, 29, 58, 0.02);
+  border: 1px solid rgba(33, 29, 58, 0.07);
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 450px;
+  box-shadow: 0 4px 14px rgba(33, 29, 58, 0.01);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.focus-column:hover {
+  border-color: rgba(33, 29, 58, 0.12);
+  box-shadow: 0 6px 18px rgba(33, 29, 58, 0.03);
+}
+
+.focus-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(33, 29, 58, 0.08);
+}
+
+.focus-column-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #211d3a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.focus-task-card {
+  background: #ffffff;
+  border: 1px solid rgba(33, 29, 58, 0.09);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(33, 29, 58, 0.02);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.focus-task-card:hover {
+  box-shadow: 0 8px 20px rgba(33, 29, 58, 0.09);
+  transform: translateY(-2px);
+  border-color: rgba(33, 29, 58, 0.18);
+}
+
+@media (max-width: 1024px) {
+  .focus-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .focus-grid {
+    grid-template-columns: 1fr;
+  }
+  .focus-column {
+    min-height: auto;
+  }
+}
+
 

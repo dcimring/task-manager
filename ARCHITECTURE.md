@@ -26,19 +26,20 @@ graph TD
     B --> C[Convex Backend Hooks]
     B --> D[Layout / Sidebar Routing]
     B --> E[Views / Tabs]
-    E --> F[Tasks View]
-    E --> G[Board View]
-    E --> H[Projects View]
-    E --> I[Analytics View]
-    E --> J[Weekly Report View]
-    B --> K[Edit Task Overlay]
-    C --> L[(Convex Cloud Database)]
+    E --> F[Focus View]
+    E --> G[Tasks View]
+    E --> H[Board View]
+    E --> I[Projects View]
+    E --> J[Analytics View]
+    E --> K[Weekly Report View]
+    B --> L[Edit Task Overlay]
+    C --> M[(Convex Cloud Database)]
 ```
 
 ### 1. State Management
 
 Application state is synchronized in real-time with the Convex backend using reactive queries and mutations:
-* **`view`**: The current tab being displayed (e.g., `'tasks'`, `'board'`, `'projects'`, `'analytics'`, `'weekly'`).
+* **`view`**: The current tab being displayed (e.g., `'focus'`, `'tasks'`, `'board'`, `'projects'`, `'analytics'`, `'weekly'`).
 * **`tasks`**: Synchronized real-time array from Convex.
 * **`projects`**: Synchronized real-time array from Convex.
 * **`filters`**: Local search and filter settings (search phrase, project filter, urgency level, status).
@@ -57,7 +58,11 @@ Application state is synchronized in real-time with the Convex backend using rea
 ### 3. Rendering and Derived State
 
 To keep state simple and singular, views are rendered dynamically by deriving state in real-time from the master `tasks` list:
-* **`decoratedFiltered`**: Applies status pills, urgency dot styles, overdue indicators, and date formatting to filtered tasks for rendering.
+* **Focus Columns**: Dynamic filtering of active tasks into three lists:
+  * *Overdue*: Tasks with status != `'done'` and deadlines in the past.
+  * *Upcoming*: Tasks with status != `'done'` and deadlines in the next 7 days.
+  * *Suggested Next*: Up to 3 active, non-overdue tasks prioritized by active status (`doing`), high urgency, closest deadline, and age.
+* **`decoratedFiltered`**: Applies status pills, urgency dot styles, overdue indicators, and date formatting to filtered tasks for rendering on the Tasks tab.
 * **Board Columns**: Transformed dynamically from statuses (`'todo'`, `'doing'`, `'blocked'`, `'done'`).
 * **Project Statistics**: Derived dynamically by counting tasks and statuses for each project to compute completion rates.
 * **Analytics**: Real-time aggregation of task averages, weekly completed rates, and completion progression bars.
