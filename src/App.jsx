@@ -401,28 +401,34 @@ export default function App() {
   const getFocusTasks = () => {
     const now = new Date();
     
-    // 1. Overdue tasks (active, deadline has passed)
+    // 1. Overdue tasks (active, non-blocked, deadline has passed)
     const overdue = tasks
-      .filter((t) => t.status !== 'done' && t.deadline && new Date(t.deadline) < now)
+      .filter((t) => t.status !== 'done' && t.status !== 'blocked' && t.deadline && new Date(t.deadline) < now)
       .map(decorate)
       .sort((a, b) => new Date(a.deadline) - new Date(b.deadline)); // Most overdue first
 
-    // 2. Upcoming tasks (active, deadline in the next 7 days)
+    // 2. Upcoming tasks (active, non-blocked, deadline in the next 7 days)
     const next7Days = new Date();
     next7Days.setDate(next7Days.getDate() + 7);
     const upcoming = tasks
       .filter((t) => {
-        if (t.status === 'done' || !t.deadline) return false;
+        if (t.status === 'done' || t.status === 'blocked' || !t.deadline) return false;
         const dl = new Date(t.deadline);
         return dl >= now && dl <= next7Days;
       })
       .map(decorate)
       .sort((a, b) => new Date(a.deadline) - new Date(b.deadline)); // Soonest first
 
-    // 3. Suggested tasks (up to 3 active, non-overdue tasks, prioritized)
+    // 3. Blocked tasks (all currently blocked tasks)
+    const blocked = tasks
+      .filter((t) => t.status === 'blocked')
+      .map(decorate)
+      .sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded)); // Oldest blocked first
+
+    // 4. Suggested tasks (up to 3 active, non-blocked, non-overdue tasks, prioritized)
     const suggestedCandidates = tasks
       .filter((t) => {
-        if (t.status === 'done') return false;
+        if (t.status === 'done' || t.status === 'blocked') return false;
         const isOverdue = t.deadline && new Date(t.deadline) < now;
         return !isOverdue;
       })
@@ -489,10 +495,10 @@ export default function App() {
       };
     });
 
-    return { overdue, upcoming, suggested };
+    return { overdue, upcoming, blocked, suggested };
   };
 
-  const { overdue: focusOverdue, upcoming: focusUpcoming, suggested: focusSuggested } = getFocusTasks();
+  const { overdue: focusOverdue, upcoming: focusUpcoming, blocked: focusBlocked, suggested: focusSuggested } = getFocusTasks();
 
   const boardAccent = { todo: 'rgba(33,29,58,0.2)', doing: '#3f5f9e', done: '#357a55', blocked: secondaryAccent };
   const boardColumns = ['todo', 'doing', 'blocked', 'done'].map((status) => ({
@@ -920,6 +926,91 @@ export default function App() {
                     >
                       <span style={{ fontSize: '24px', marginBottom: '8px' }}>☕</span>
                       No tasks due in next 7 days.
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Blocked Column */}
+              <div className="focus-column" style={{ borderTop: '3px solid #c2542f' }}>
+                <div className="focus-column-header">
+                  <div className="focus-column-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c2542f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                    </svg>
+                    Blocked
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#c2542f',
+                      backgroundColor: 'rgba(194, 84, 47, 0.1)',
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                    }}
+                  >
+                    {focusBlocked.length}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+                  {focusBlocked.map((t) => (
+                    <div key={t._id} onClick={() => openEditTask(t)} className="focus-task-card">
+                      <div style={{ fontSize: '15px', fontWeight: 500, color: '#211d3a', marginBottom: '8px', lineHeight: 1.4 }}>
+                        {t.description}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: t.deadline ? '8px' : '0px' }}>
+                        <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.5)' }}>
+                          {t.project}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
+                          <span style={t.urgencyDotStyle}></span>
+                          <span style={{ fontSize: '11px', color: 'rgba(33, 29, 58, 0.65)' }}>{t.urgencyLabelText}</span>
+                        </span>
+                      </div>
+                      {t.deadline && (
+                        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: t.overdue ? '#c1493f' : '#c68a2e',
+                            backgroundColor: t.overdue ? 'rgba(193, 73, 63, 0.1)' : 'rgba(198, 138, 46, 0.12)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}>
+                            {t.overdue ? 'Overdue: ' : 'Due: '}{t.deadlineFmt}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {focusBlocked.length === 0 && (
+                    <div
+                      style={{
+                        padding: '32px 16px',
+                        textAlign: 'center',
+                        color: 'rgba(33, 29, 58, 0.4)',
+                        fontSize: '14px',
+                        fontStyle: 'italic',
+                        backgroundColor: 'rgba(33, 29, 58, 0.02)',
+                        border: '1px dashed rgba(33, 29, 58, 0.1)',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flex: 1,
+                      }}
+                    >
+                      <span style={{ fontSize: '24px', marginBottom: '8px' }}>🎉</span>
+                      No blocked tasks!
                     </div>
                   )}
                 </div>

@@ -58,10 +58,11 @@ Application state is synchronized in real-time with the Convex backend using rea
 ### 3. Rendering and Derived State
 
 To keep state simple and singular, views are rendered dynamically by deriving state in real-time from the master `tasks` list:
-* **Focus Columns**: Dynamic filtering of active tasks into three lists:
-  * *Overdue*: Tasks with status != `'done'` and deadlines in the past.
-  * *Upcoming*: Tasks with status != `'done'` and deadlines in the next 7 days.
-  * *Suggested Next*: Up to 3 active, non-overdue tasks prioritized by active status (`doing`), high urgency, closest deadline, and age.
+* **Focus Columns**: Dynamic filtering of active tasks into four lists:
+  * *Overdue*: Tasks with status != `'done'` and status != `'blocked'` and deadlines in the past.
+  * *Upcoming*: Tasks with status != `'done'` and status != `'blocked'` and deadlines in the next 7 days.
+  * *Blocked*: Tasks with status == `'blocked'` (sorted by oldest first) to highlight stalled items requiring unblocking.
+  * *Suggested Next*: Up to 3 active, non-blocked, non-overdue tasks prioritized by active status (`doing`), high urgency, closest deadline, and age.
 * **`decoratedFiltered`**: Applies status pills, urgency dot styles, overdue indicators, and date formatting to filtered tasks for rendering on the Tasks tab.
 * **Board Columns**: Transformed dynamically from statuses (`'todo'`, `'doing'`, `'blocked'`, `'done'`).
 * **Project Statistics**: Derived dynamically by counting tasks and statuses for each project to compute completion rates.
