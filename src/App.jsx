@@ -11,6 +11,10 @@ export default function App() {
   const [weekKey, setWeekKey] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Update checking state
+  const [updateVersion, setUpdateVersion] = useState(null);
+  const [dismissedVersion, setDismissedVersion] = useState(null);
+
   // Auth State & Google Identity Services integration
   const [user, setUser] = useState(() => {
     try {
@@ -124,6 +128,33 @@ export default function App() {
       initGoogleSignIn();
     }
   }, [user]);
+
+  // Update checking effect (polls version.json periodically)
+  useEffect(() => {
+    if (import.meta.env.DEV) return;
+
+    const checkInterval = 60000; // Check every 60 seconds
+
+    const checkForUpdates = async () => {
+      try {
+        const response = await fetch(`/version.json?t=${Date.now()}`);
+        if (!response.ok) return;
+        const data = await response.json();
+
+        // Compare server version with build-time __APP_VERSION__ global
+        const currentVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
+        if (data.version && String(data.version) !== String(currentVersion)) {
+          setUpdateVersion(data.version);
+        }
+      } catch (err) {
+        console.error('Failed to check for updates:', err);
+      }
+    };
+
+    checkForUpdates();
+    const interval = setInterval(checkForUpdates, checkInterval);
+    return () => clearInterval(interval);
+  }, []);
 
   // Load state from Convex
   const tasks = useQuery(api.tasks.get) ?? [];
@@ -2229,6 +2260,31 @@ export default function App() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Update Toast */}
+      {updateVersion && updateVersion !== dismissedVersion && (
+        <div className="update-toast">
+          <div className="update-toast-content">
+            <div className="update-toast-title">Update Available</div>
+            <div className="update-toast-desc">A new version of this application is available.</div>
+          </div>
+          <div className="update-toast-actions">
+            <button className="update-toast-btn" onClick={() => window.location.reload()}>
+              Refresh
+            </button>
+            <button 
+              className="update-toast-close" 
+              onClick={() => setDismissedVersion(updateVersion)} 
+              title="Dismiss"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

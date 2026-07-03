@@ -86,3 +86,13 @@ The application features a strict frontend-enforced login barrier:
 * **Session Persistence**: Successful login details (email and name) are stored in `localStorage` as `task_manager_user`. This session is checked on mount to prevent re-authentication prompts.
 * **Logout Flow**: Logging out clears the local storage token and resets the React state, immediately triggering the login overlay.
 
+### 6. Update Notification System (No Service Workers)
+
+To notify users when the application has been updated without using service workers, a lightweight timestamp-based polling mechanism is employed:
+* **Build-Time Constant**: `vite.config.js` injects `__APP_VERSION__` as a global variable set to the current build time.
+* **Build Asset**: Rollup outputs a `version.json` file in the build output (`dist/`) containing the build timestamp.
+* **Polling Effect**: In production mode, `App.jsx` periodically fetches `/version.json` (bypassing browser cache with a cache-busting timestamp query parameter) every 60 seconds.
+* **Version Mismatch**: If the version timestamp returned by the server differs from the currently running `__APP_VERSION__`, a modern, responsive toast notification is shown prompting the user to refresh the page.
+* **Dismiss Option**: If the user dismisses the toast, the app tracks the dismissed version in state to avoid repeatedly showing the toast for that specific version.
+
+
