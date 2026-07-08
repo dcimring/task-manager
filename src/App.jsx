@@ -4,7 +4,7 @@ import { api } from '../convex/_generated/api';
 
 export default function App() {
   const [view, setView] = useState('focus');
-  const [filters, setFilters] = useState({ search: '', project: 'all', urgency: 'all', status: 'active' });
+  const [filters, setFilters] = useState({ search: '', project: 'all', urgency: 'all', status: 'active', type: 'all' });
   const [panel, setPanel] = useState(null); // null or { mode: 'new' | 'edit', draft: { ... } }
   const [projectForm, setProjectForm] = useState({ show: false, name: '', description: '' });
   const [editingProject, setEditingProject] = useState(null); // null or { id, name, description }
@@ -196,6 +196,26 @@ export default function App() {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const formatAge = (iso, baseDate) => {
+    if (!iso) return '—';
+    const now = baseDate || new Date();
+    const diffMs = now - new Date(iso);
+    if (diffMs < 0) return 'Just now';
+
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} m`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} h`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} d`;
+
+    const diffWeeks = Math.floor(diffDays / 7);
+    return `${diffWeeks} w`;
+  };
+
   const daysBetween = (a, b) => {
     return Math.max(0, Math.round((new Date(b) - new Date(a)) / 86400000));
   };
@@ -230,6 +250,11 @@ export default function App() {
           if (t.status === 'done') return false;
         } else if (filters.status !== 'all' && t.status !== filters.status) {
           return false;
+        }
+        if (filters.type === 'tasks') {
+          if (t.dateType === 'reminder') return false;
+        } else if (filters.type === 'reminders') {
+          if (t.dateType !== 'reminder') return false;
         }
         if (filters.search && !t.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
         return true;
@@ -288,14 +313,14 @@ export default function App() {
   const openNewTask = () => {
     setPanel({
       mode: 'new',
-      draft: { description: '', project: '', urgency: 'medium', deadline: '', status: 'todo', recurrence: null },
+      draft: { description: '', project: '', urgency: 'medium', deadline: '', status: 'todo', recurrence: null, dateType: 'deadline' },
     });
   };
 
   const openEditTask = (task) => {
     setPanel({
       mode: 'edit',
-      draft: { ...task, deadline: task.deadline ? task.deadline.slice(0, 10) : '', recurrence: task.recurrence || null },
+      draft: { ...task, deadline: task.deadline ? task.deadline.slice(0, 10) : '', recurrence: task.recurrence || null, dateType: task.dateType || 'deadline' },
     });
   };
 
@@ -325,6 +350,7 @@ export default function App() {
     const project = (draft.project || '').trim() || 'General';
     const deadline = draft.deadline ? new Date(draft.deadline).toISOString() : null;
     const recurrence = (draft.recurrence && draft.recurrence !== 'none') ? draft.recurrence : null;
+    const dateType = draft.deadline ? (draft.dateType || 'deadline') : null;
 
     await saveTaskMutation({
       _id: panel.mode === 'edit' ? draft._id : undefined,
@@ -334,6 +360,7 @@ export default function App() {
       status: draft.status,
       deadline,
       recurrence,
+      dateType,
     });
     setPanel(null);
   };
@@ -346,6 +373,22 @@ export default function App() {
 
   const moveTaskStatus = async (id, status) => {
     await moveTaskStatusMutation({ id, status });
+  };
+
+  const snoozeReminder = async (task) => {
+    const tom = new Date();
+    tom.setDate(tom.getDate() + 1);
+    const deadline = tom.toISOString();
+    await saveTaskMutation({
+      _id: task._id,
+      description: task.description,
+      project: task.project,
+      urgency: task.urgency,
+      status: task.status,
+      deadline,
+      recurrence: task.recurrence || null,
+      dateType: 'reminder',
+    });
   };
 
   const dragStart = (e, id) => {
@@ -440,9 +483,10 @@ export default function App() {
         color: statusMeta[t.status].color,
       },
       dateAddedFmt: fmtDate(t.dateAdded),
+      ageFmt: formatAge(t.dateAdded, now),
       dateStartedFmt: fmtDate(t.dateStarted),
       dateCompletedFmt: fmtDate(t.dateCompleted),
-      deadlineFmt: t.deadline ? fmtDate(t.deadline) : '—',
+      deadlineFmt: t.deadline ? (t.dateType === 'reminder' ? `⏰ ${fmtDate(t.deadline)}` : fmtDate(t.deadline)) : '—',
       deadlineTextStyle: {
         fontSize: '12.5px',
         color: overdue ? secondaryAccent : 'rgba(33,29,58,0.55)',
@@ -459,7 +503,7 @@ export default function App() {
     
     // 1. Overdue tasks (active, non-blocked, deadline has passed)
     const overdue = tasks
-      .filter((t) => t.status !== 'done' && t.status !== 'blocked' && t.deadline && new Date(t.deadline) < now)
+      .filter((t) => t.status !== 'done' && t.status !== 'blocked' && t.dateType !== 'reminder' && t.deadline && new Date(t.deadline) < now)
       .map(decorate)
       .sort((a, b) => new Date(a.deadline) - new Date(b.deadline)); // Most overdue first
 
@@ -468,7 +512,7 @@ export default function App() {
     next7Days.setDate(next7Days.getDate() + 7);
     const upcoming = tasks
       .filter((t) => {
-        if (t.status === 'done' || t.status === 'blocked' || !t.deadline) return false;
+        if (t.status === 'done' || t.status === 'blocked' || t.dateType === 'reminder' || !t.deadline) return false;
         const dl = new Date(t.deadline);
         return dl >= now && dl <= next7Days;
       })
@@ -477,14 +521,14 @@ export default function App() {
 
     // 3. Blocked tasks (all currently blocked tasks)
     const blocked = tasks
-      .filter((t) => t.status === 'blocked')
+      .filter((t) => t.status === 'blocked' && t.dateType !== 'reminder')
       .map(decorate)
       .sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded)); // Oldest blocked first
 
     // 4. Suggested tasks (up to 3 active, non-blocked, non-overdue tasks, prioritized)
     const suggestedCandidates = tasks
       .filter((t) => {
-        if (t.status === 'done' || t.status === 'blocked') return false;
+        if (t.status === 'done' || t.status === 'blocked' || t.dateType === 'reminder') return false;
         const isOverdue = t.deadline && new Date(t.deadline) < now;
         return !isOverdue;
       })
@@ -556,14 +600,25 @@ export default function App() {
 
   const { overdue: focusOverdue, upcoming: focusUpcoming, blocked: focusBlocked, suggested: focusSuggested } = getFocusTasks();
 
+  const localDateStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
+  const activeReminders = tasks.filter((t) => 
+    t.status !== 'done' && 
+    t.dateType === 'reminder' && 
+    t.deadline && 
+    t.deadline.slice(0, 10) <= localDateStr
+  ).map(decorate);
+
   const boardAccent = { todo: 'rgba(33,29,58,0.2)', doing: '#3f5f9e', done: '#357a55', blocked: secondaryAccent };
-  const boardColumns = ['todo', 'doing', 'blocked', 'done'].map((status) => ({
-    status,
-    label: statusMeta[status].label,
-    count: tasks.filter((t) => t.status === status).length,
-    accentColor: boardAccent[status],
-    tasks: tasks.filter((t) => t.status === status).map(decorate),
-  }));
+  const boardColumns = ['todo', 'doing', 'blocked', 'done'].map((status) => {
+    const colTasks = tasks.filter((t) => t.status === status && t.dateType !== 'reminder');
+    return {
+      status,
+      label: statusMeta[status].label,
+      count: colTasks.length,
+      accentColor: boardAccent[status],
+      tasks: colTasks.map(decorate),
+    };
+  });
 
   const projectStats = getProjectStats().map((p) => ({
     ...p,
@@ -852,6 +907,163 @@ export default function App() {
               </div>
             </div>
             <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginBottom: '28px' }}></div>
+
+            {activeReminders.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: 'rgba(107, 79, 187, 0.06)',
+                  border: '1.5px solid rgba(107, 79, 187, 0.18)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  marginBottom: '28px',
+                  animation: 'fadeInUp 0.35s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <span style={{ fontSize: '18px' }}>⏰</span>
+                  <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '20px', fontWeight: 650, color: '#6b4fbb' }}>
+                    Active Reminders
+                  </span>
+                  <span style={{ 
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#6b4fbb',
+                    backgroundColor: 'rgba(107, 79, 187, 0.12)',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    marginLeft: '8px'
+                  }}>
+                    {activeReminders.length}
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
+                  {activeReminders.map((r) => (
+                    <div
+                      key={r._id}
+                      style={{
+                        backgroundColor: '#fff',
+                        border: '1px solid rgba(33, 29, 58, 0.08)',
+                        borderRadius: '10px',
+                        padding: '14px 16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        boxShadow: '0 2px 8px rgba(33, 29, 58, 0.03)',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: 550, color: '#211d3a', lineHeight: 1.4 }}>
+                          {r.description}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+                          <span style={{ 
+                            fontSize: '10.5px', 
+                            fontWeight: 600, 
+                            color: 'rgba(33, 29, 58, 0.55)', 
+                            backgroundColor: 'rgba(33, 29, 58, 0.06)',
+                            padding: '2px 6px',
+                            borderRadius: '4px' 
+                          }}>
+                            {r.project}
+                          </span>
+                          {r.recurrence && (
+                            <span style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '3px',
+                              fontSize: '9.5px',
+                              color: '#6b4fbb',
+                              backgroundColor: 'rgba(107, 79, 187, 0.08)',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontWeight: '700',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                            }}>
+                              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                              </svg>
+                              {r.recurrence}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => moveTaskStatus(r._id, 'done')}
+                          style={{
+                            flex: 1.2,
+                            padding: '7px 10px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            backgroundColor: 'rgba(75, 143, 106, 0.12)',
+                            color: '#357a55',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'opacity 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.target.style.opacity = '0.85')}
+                          onMouseLeave={(e) => (e.target.style.opacity = '1')}
+                        >
+                          Dismiss
+                        </button>
+                        <button
+                          onClick={() => snoozeReminder(r)}
+                          style={{
+                            padding: '7px 10px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            backgroundColor: 'rgba(198, 138, 46, 0.12)',
+                            color: '#c68a2e',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'opacity 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.target.style.opacity = '0.85')}
+                          onMouseLeave={(e) => (e.target.style.opacity = '1')}
+                        >
+                          Snooze
+                        </button>
+                        <button
+                          onClick={() => saveTaskMutation({ 
+                            _id: r._id, 
+                            description: r.description, 
+                            project: r.project, 
+                            urgency: r.urgency, 
+                            status: r.status, 
+                            deadline: r.deadline, 
+                            recurrence: r.recurrence || null, 
+                            dateType: 'deadline' 
+                          })}
+                          style={{
+                            flex: 1.5,
+                            padding: '7px 10px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            backgroundColor: 'rgba(107, 79, 187, 0.12)',
+                            color: '#6b4fbb',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'opacity 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.target.style.opacity = '0.85')}
+                          onMouseLeave={(e) => (e.target.style.opacity = '1')}
+                        >
+                          Make Task
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="focus-grid">
               {/* Overdue Column */}
@@ -1365,6 +1577,24 @@ export default function App() {
                 <option value="blocked">Blocked</option>
                 <option value="done">Done</option>
               </select>
+              <select
+                value={filters.type || 'all'}
+                onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}
+                style={{
+                  height: '42px',
+                  boxSizing: 'border-box',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(33, 29, 58, 0.16)',
+                  backgroundColor: '#fff',
+                  fontSize: '14px',
+                  color: '#211d3a',
+                }}
+              >
+                <option value="all">All Types</option>
+                <option value="tasks">Tasks Only</option>
+                <option value="reminders">Reminders Only</option>
+              </select>
             </div>
 
             {/* Active Filters Warning Banner */}
@@ -1375,6 +1605,10 @@ export default function App() {
               if (filters.status !== 'active') {
                 const statusLabels = { all: 'All Status', todo: 'To Do', doing: 'Doing', blocked: 'Blocked', done: 'Done' };
                 activeFilters.push({ key: 'status', label: `Status: ${statusLabels[filters.status] || filters.status}` });
+              }
+              if (filters.type && filters.type !== 'all') {
+                const typeLabels = { tasks: 'Tasks Only', reminders: 'Reminders Only' };
+                activeFilters.push({ key: 'type', label: `Type: ${typeLabels[filters.type]}` });
               }
               if (activeFilters.length === 0) return null;
 
@@ -1437,7 +1671,7 @@ export default function App() {
                     ))}
                   </div>
                   <button
-                    onClick={() => setFilters((prev) => ({ ...prev, project: 'all', urgency: 'all', status: 'all' }))}
+                    onClick={() => setFilters((prev) => ({ ...prev, project: 'all', urgency: 'all', status: 'all', type: 'all' }))}
                     style={{
                       background: 'none',
                       border: 'none',
@@ -1468,13 +1702,16 @@ export default function App() {
                 <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>PROJECT</span>
                 <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>URGENCY</span>
                 <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>DEADLINE</span>
-                <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>ADDED</span>
+                <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', letterSpacing: '0.08em', color: 'rgba(33, 29, 58, 0.45)' }}>AGE</span>
               </div>
               {decoratedFiltered.map((t) => (
                 <div key={t._id} onClick={() => openEditTask(t)} className={`task-row ${t.overdue ? 'overdue' : ''}`}>
                   <span style={t.statusPillStyle}>{t.statusLabelText}</span>
                   <span className="task-desc">
-                    <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                    <span style={{ verticalAlign: 'middle' }}>
+                      {t.dateType === 'reminder' && <span style={{ marginRight: '6px', fontSize: '14px', verticalAlign: 'middle' }}>⏰</span>}
+                      {t.description}
+                    </span>
                     {t.recurrence && (
                       <span style={{ 
                         display: 'inline-flex', 
@@ -1506,7 +1743,7 @@ export default function App() {
                     {t.urgencyLabelText}
                   </span>
                   <span style={t.deadlineTextStyle}>{t.deadlineFmt}</span>
-                  <span style={{ fontSize: '12.5px', color: 'rgba(33, 29, 58, 0.5)' }}>{t.dateAddedFmt}</span>
+                  <span title={t.dateAddedFmt} style={{ fontSize: '12.5px', color: 'rgba(33, 29, 58, 0.5)' }}>{t.ageFmt}</span>
                 </div>
               ))}
               {decoratedFiltered.length === 0 && (
@@ -2341,14 +2578,43 @@ export default function App() {
             <div>
               <div
                 style={{
-                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                  fontSize: '10.5px',
-                  letterSpacing: '0.08em',
-                  color: 'rgba(33, 29, 58, 0.45)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   marginBottom: '7px',
                 }}
               >
-                DEADLINE (OPTIONAL)
+                <div
+                  style={{
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                    fontSize: '10.5px',
+                    letterSpacing: '0.08em',
+                    color: 'rgba(33, 29, 58, 0.45)',
+                  }}
+                >
+                  DATE (OPTIONAL)
+                </div>
+                {panel.draft.deadline && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateDraft('deadline', '');
+                      updateDraft('recurrence', null);
+                      updateDraft('dateType', 'deadline');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#c1493f',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    ✕ Clear
+                  </button>
+                )}
               </div>
               <input
                 type="date"
@@ -2371,6 +2637,59 @@ export default function App() {
                   outline: 'none',
                 }}
               />
+              {panel.draft.deadline && (
+                <div style={{ marginTop: '10px' }}>
+                  <div
+                    style={{
+                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                      fontSize: '10px',
+                      letterSpacing: '0.08em',
+                      color: 'rgba(33, 29, 58, 0.45)',
+                      marginBottom: '7px',
+                    }}
+                  >
+                    DATE PURPOSE
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => updateDraft('dateType', 'deadline')}
+                      style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1.5px solid ' + (panel.draft.dateType !== 'reminder' ? '#211d3a' : 'rgba(33, 29, 58, 0.18)'),
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        backgroundColor: panel.draft.dateType !== 'reminder' ? '#211d3a' : 'transparent',
+                        color: panel.draft.dateType !== 'reminder' ? '#fff' : '#211d3a',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      Task Deadline
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateDraft('dateType', 'reminder')}
+                      style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1.5px solid ' + (panel.draft.dateType === 'reminder' ? '#211d3a' : 'rgba(33, 29, 58, 0.18)'),
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        backgroundColor: panel.draft.dateType === 'reminder' ? '#211d3a' : 'transparent',
+                        color: panel.draft.dateType === 'reminder' ? '#fff' : '#211d3a',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      ⏰ Reminder Alert
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
@@ -2383,7 +2702,7 @@ export default function App() {
                   marginBottom: '7px',
                 }}
               >
-                REPEAT (REQUIRES DEADLINE)
+                REPEAT (REQUIRES DATE)
               </div>
               <select
                 value={panelView.recurrence || 'none'}
@@ -2491,6 +2810,110 @@ export default function App() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Active Reminders Float Toast */}
+      {view !== 'focus' && activeReminders.length > 0 && (
+        <div className="active-reminders-toast">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(33, 29, 58, 0.08)', paddingBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#6b4fbb', fontSize: '15px' }}>
+              <span>⏰</span> Reminders Due
+            </div>
+            <span style={{ 
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#6b4fbb',
+              backgroundColor: 'rgba(107, 79, 187, 0.1)',
+              padding: '1px 6px',
+              borderRadius: '8px'
+            }}>
+              {activeReminders.length}
+            </span>
+          </div>
+          <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, paddingRight: '2px' }}>
+            {activeReminders.map((r) => (
+              <div key={r._id} style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingBottom: '8px', borderBottom: '1px solid rgba(33, 29, 58, 0.05)' }}>
+                <div style={{ fontSize: '13.5px', color: '#211d3a', fontWeight: 550, lineHeight: 1.3 }}>
+                  {r.description}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ 
+                    fontSize: '9.5px', 
+                    fontWeight: 600, 
+                    color: 'rgba(33, 29, 58, 0.55)', 
+                    backgroundColor: 'rgba(33, 29, 58, 0.06)',
+                    padding: '1px 5px',
+                    borderRadius: '4px' 
+                  }}>
+                    {r.project}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                  <button
+                    onClick={() => moveTaskStatus(r._id, 'done')}
+                    className="toast-action-btn"
+                    style={{
+                      flex: 1,
+                      padding: '5px 8px',
+                      borderRadius: '5px',
+                      border: 'none',
+                      backgroundColor: 'rgba(75, 143, 106, 0.1)',
+                      color: '#357a55',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Dismiss
+                  </button>
+                  <button
+                    onClick={() => snoozeReminder(r)}
+                    className="toast-action-btn"
+                    style={{
+                      padding: '5px 8px',
+                      borderRadius: '5px',
+                      border: 'none',
+                      backgroundColor: 'rgba(198, 138, 46, 0.1)',
+                      color: '#c68a2e',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Snooze
+                  </button>
+                  <button
+                    onClick={() => saveTaskMutation({ 
+                      _id: r._id, 
+                      description: r.description, 
+                      project: r.project, 
+                      urgency: r.urgency, 
+                      status: r.status, 
+                      deadline: r.deadline, 
+                      recurrence: r.recurrence || null, 
+                      dateType: 'deadline' 
+                    })}
+                    className="toast-action-btn"
+                    style={{
+                      flex: 1.3,
+                      padding: '5px 8px',
+                      borderRadius: '5px',
+                      border: 'none',
+                      backgroundColor: 'rgba(107, 79, 187, 0.1)',
+                      color: '#6b4fbb',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Make Task
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Update Toast */}

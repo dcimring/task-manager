@@ -51,6 +51,7 @@ export const save = mutation({
     status: v.string(),
     deadline: v.union(v.string(), v.null()),
     recurrence: v.optional(v.union(v.string(), v.null())),
+    dateType: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
@@ -92,6 +93,7 @@ export const save = mutation({
         status: data.status,
         deadline: data.deadline,
         recurrence: data.recurrence || null,
+        dateType: data.dateType || null,
         dateStarted,
         dateCompleted,
       });
@@ -106,6 +108,7 @@ export const save = mutation({
           status: "todo",
           deadline: nextDeadline,
           recurrence: data.recurrence,
+          dateType: existing.dateType || null,
           dateAdded: now,
           dateStarted: null,
           dateCompleted: null,
@@ -125,6 +128,7 @@ export const save = mutation({
         status: data.status,
         deadline: data.deadline,
         recurrence: data.recurrence || null,
+        dateType: data.dateType || null,
         dateAdded,
         dateStarted,
         dateCompleted,
@@ -139,6 +143,7 @@ export const save = mutation({
           status: "todo",
           deadline: nextDeadline,
           recurrence: data.recurrence,
+          dateType: data.dateType || null,
           dateAdded: now,
           dateStarted: null,
           dateCompleted: null,
@@ -194,6 +199,7 @@ export const moveStatus = mutation({
         status: "todo",
         deadline: nextDeadline,
         recurrence: existing.recurrence,
+        dateType: existing.dateType || null,
         dateAdded: now,
         dateStarted: null,
         dateCompleted: null,

@@ -635,4 +635,40 @@ input, select, textarea, button {
   }
 }
 
+.active-reminders-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 40;
+  background-color: #ffffff;
+  border: 1.5px solid rgba(107, 79, 187, 0.25);
+  box-shadow: 0 8px 30px rgba(33, 29, 58, 0.15);
+  border-radius: 12px;
+  padding: 16px 18px;
+  width: 320px;
+  max-height: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeInUp 0.35s ease;
+}
+
+.toast-action-btn {
+  transition: opacity 0.15s ease;
+}
+
+.toast-action-btn:hover {
+  opacity: 0.82;
+}
+
+@media (max-width: 768px) {
+  .active-reminders-toast {
+    bottom: 80px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-width: none;
+  }
+}
+
 

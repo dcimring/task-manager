@@ -9,6 +9,7 @@ export default defineSchema({
     status: v.string(),
     deadline: v.union(v.string(), v.null()),
     recurrence: v.optional(v.union(v.string(), v.null())),
+    dateType: v.optional(v.union(v.string(), v.null())),
     dateAdded: v.string(),
     dateStarted: v.union(v.string(), v.null()),
     dateCompleted: v.union(v.string(), v.null()),

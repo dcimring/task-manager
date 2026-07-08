@@ -42,8 +42,8 @@ Application state is synchronized in real-time with the Convex backend using rea
 * **`view`**: The current tab being displayed (e.g., `'focus'`, `'tasks'`, `'board'`, `'projects'`, `'analytics'`, `'weekly'`).
 * **`tasks`**: Synchronized real-time array from Convex.
 * **`projects`**: Synchronized real-time array from Convex.
-* **`filters`**: Local search and filter settings (search phrase, project filter, urgency level, status defaulting to `'active'` to hide Done tasks by default).
-* **`panel`**: Tracks the display and state of the edit/creation sidebar overlay.
+* **`filters`**: Local search and filter settings (search phrase, project filter, urgency level, status defaulting to `'active'` to hide Done tasks by default, and task type filter defaulting to `'all'`).
+* **`panel`**: Tracks the display and state of the edit/creation sidebar overlay, now including `dateType` selection.
 * **`projectForm`**: Draft fields for new project additions.
 * **`editingProject`**: Draft fields (id, name, description) for editing an existing project.
 * **`weekKey`**: Tracks the selected week in the Weekly Report.
@@ -53,18 +53,19 @@ Application state is synchronized in real-time with the Convex backend using rea
 
 * **Convex Cloud Backend**: Data is stored persistently in Convex.
 * **No Seed Data**: The database starts empty. When there is no data, the frontend views are designed to degrade gracefully without breaking.
-* **Mutations**: Creating, editing, updating status, and deleting tasks or projects triggers Convex mutation functions which perform transactional database updates. For tasks with a configured recurrence (`weekly` or `monthly`), completing the task automatically computes the next deadline (+7 days or +1 month) and inserts a new cloned task in the `"todo"` status.
+* **Mutations**: Creating, editing, updating status, and deleting tasks or projects triggers Convex mutation functions which perform transactional database updates. The schema includes a `dateType` field (`"deadline"` or `"reminder"`). For tasks/reminders with a configured recurrence (`weekly` or `monthly`), completing the item automatically computes the next trigger date (+7 days or +1 month) and inserts a new cloned item in the `"todo"` status, preserving its original `dateType`.
 
 ### 3. Rendering and Derived State
 
 To keep state simple and singular, views are rendered dynamically by deriving state in real-time from the master `tasks` list:
-* **Focus Columns**: Dynamic filtering of active tasks into four lists:
-  * *Overdue*: Tasks with status != `'done'` and status != `'blocked'` and deadlines in the past.
-  * *Upcoming*: Tasks with status != `'done'` and status != `'blocked'` and deadlines in the next 7 days.
-  * *Blocked*: Tasks with status == `'blocked'` (sorted by oldest first) to highlight stalled items requiring unblocking.
-  * *Suggested Next*: Up to 3 active, non-blocked, non-overdue tasks prioritized by active status (`doing`), high urgency, closest deadline, and age.
-* **`decoratedFiltered`**: Applies status pills, urgency dot styles, overdue indicators, and date formatting to filtered tasks for rendering on the Tasks tab.
-* **Board Columns**: Transformed dynamically from statuses (`'todo'`, `'doing'`, `'blocked'`, `'done'`).
+* **Active Reminders**: Incomplete tasks of type `"reminder"` whose trigger date is today or in the past. These are rendered as a custom alert card at the top of the **Focus** view, or as a global responsive float/toast if the user is on another screen.
+* **Focus Columns**: Dynamic filtering of active, non-reminder tasks into four lists:
+  * *Overdue*: Tasks with status != `'done'`, status != `'blocked'`, `dateType !== 'reminder'`, and deadlines in the past.
+  * *Upcoming*: Tasks with status != `'done'`, status != `'blocked'`, `dateType !== 'reminder'`, and deadlines in the next 7 days.
+  * *Blocked*: Tasks with status == `'blocked'` and `dateType !== 'reminder'` (sorted by oldest first) to highlight stalled items requiring unblocking.
+  * *Suggested Next*: Up to 3 active, non-blocked, non-overdue, non-reminder tasks prioritized by active status (`doing`), high urgency, closest deadline, and age.
+* **`decoratedFiltered`**: Applies status pills, urgency dot styles, overdue indicators, friendly task age, date formatting, and prepended clock icons for reminders to filtered tasks for rendering on the Tasks tab.
+* **Board Columns**: Transformed dynamically from statuses (`'todo'`, `'doing'`, `'blocked'`, `'done'`), explicitly excluding items of type `"reminder"`.
 * **Project Statistics**: Derived dynamically by counting tasks and statuses for each project to compute completion rates.
 * **Analytics**: Real-time aggregation of overall completion rate, total tasks, average days to complete, overdue tasks, and blocked tasks.
 * **Weekly Report Rows**: Groups and filters completed tasks based on their corresponding monday-of-the-week key.
