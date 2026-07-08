@@ -1520,7 +1520,7 @@ export default function App() {
                       >
                         {f.label}
                         <button
-                          onClick={() => setFilters((prev) => ({ ...prev, [f.key]: 'all' }))}
+                          onClick={() => setFilters((prev) => ({ ...prev, [f.key]: f.key === 'status' ? 'active' : 'all' }))}
                           style={{
                             background: 'none',
                             border: 'none',
@@ -1540,7 +1540,7 @@ export default function App() {
                     ))}
                   </div>
                   <button
-                    onClick={() => setFilters((prev) => ({ ...prev, project: 'all', urgency: 'all', status: 'all', type: 'all' }))}
+                    onClick={() => setFilters((prev) => ({ ...prev, project: 'all', urgency: 'all', status: 'active', type: 'all' }))}
                     style={{
                       background: 'none',
                       border: 'none',
