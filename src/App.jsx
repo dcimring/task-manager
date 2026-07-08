@@ -912,36 +912,20 @@ export default function App() {
 
             <div className="focus-grid">
               {/* Overdue Column */}
-              <div className="focus-column" style={{ borderTop: '3px solid #c1493f' }}>
+              <div className="focus-column">
                 <div className="focus-column-header">
-                  <div className="focus-column-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c1493f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    Overdue
+                  <div className="focus-column-header-top">
+                    <span className="focus-column-title">Overdue</span>
+                    <span className="focus-column-count">{focusOverdue.length}</span>
                   </div>
-                  <span
-                    style={{
-                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#c1493f',
-                      backgroundColor: 'rgba(193, 73, 63, 0.1)',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    {focusOverdue.length}
-                  </span>
+                  <div className="focus-column-bar" style={{ backgroundColor: '#c2542f' }}></div>
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
                   {focusOverdue.map((t) => (
                     <div key={t._id} onClick={() => openEditTask(t)} className="focus-task-card">
-                      <div style={{ fontSize: '15px', fontWeight: 500, color: '#211d3a', marginBottom: '8px', lineHeight: 1.4 }}>
-                        <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                      <div className="focus-task-title">
+                        {t.description}
                         {t.recurrence && (
                           <span style={{ 
                             display: 'inline-flex', 
@@ -967,76 +951,30 @@ export default function App() {
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                        <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.5)' }}>
-                          {t.project}
-                        </span>
-                        <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#c1493f' }}>
-                          Overdue: {t.deadlineFmt}
-                        </span>
+                      <div className="focus-task-meta">
+                        <span className="focus-task-project">{t.project}</span>
+                        <span className="focus-task-date-red">Overdue • {t.deadlineFmt}</span>
                       </div>
                     </div>
                   ))}
-                  {focusOverdue.length === 0 && (
-                    <div
-                      style={{
-                        padding: '32px 16px',
-                        textAlign: 'center',
-                        color: 'rgba(33, 29, 58, 0.4)',
-                        fontSize: '14px',
-                        fontStyle: 'italic',
-                        backgroundColor: 'rgba(75, 143, 106, 0.04)',
-                        border: '1px dashed rgba(75, 143, 106, 0.2)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flex: 1,
-                      }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4b8f6a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}>
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                      </svg>
-                      No overdue tasks!
-                    </div>
-                  )}
                 </div>
               </div>
 
               {/* Upcoming Column */}
-              <div className="focus-column" style={{ borderTop: '3px solid #c68a2e' }}>
+              <div className="focus-column">
                 <div className="focus-column-header">
-                  <div className="focus-column-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c68a2e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    Upcoming (7d)
+                  <div className="focus-column-header-top">
+                    <span className="focus-column-title">Upcoming • 7d</span>
+                    <span className="focus-column-count">{focusUpcoming.length}</span>
                   </div>
-                  <span
-                    style={{
-                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#c68a2e',
-                      backgroundColor: 'rgba(198, 138, 46, 0.1)',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    {focusUpcoming.length}
-                  </span>
+                  <div className="focus-column-bar" style={{ backgroundColor: '#c68a2e' }}></div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
                   {focusUpcoming.map((t) => (
                     <div key={t._id} onClick={() => openEditTask(t)} className="focus-task-card">
-                      <div style={{ fontSize: '15px', fontWeight: 500, color: '#211d3a', marginBottom: '8px', lineHeight: 1.4 }}>
-                        <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                      <div className="focus-task-title">
+                        {t.description}
                         {t.recurrence && (
                           <span style={{ 
                             display: 'inline-flex', 
@@ -1062,76 +1000,30 @@ export default function App() {
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                        <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.5)' }}>
-                          {t.project}
-                        </span>
-                        <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#c68a2e' }}>
-                          Due: {t.deadlineFmt}
-                        </span>
+                      <div className="focus-task-meta">
+                        <span className="focus-task-project">{t.project}</span>
+                        <span className="focus-task-date-gold">Due • {t.deadlineFmt}</span>
                       </div>
                     </div>
                   ))}
-                  {focusUpcoming.length === 0 && (
-                    <div
-                      style={{
-                        padding: '32px 16px',
-                        textAlign: 'center',
-                        color: 'rgba(33, 29, 58, 0.4)',
-                        fontSize: '14px',
-                        fontStyle: 'italic',
-                        backgroundColor: 'rgba(33, 29, 58, 0.02)',
-                        border: '1px dashed rgba(33, 29, 58, 0.1)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flex: 1,
-                      }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px', opacity: 0.5 }}>
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                      </svg>
-                      No tasks due in next 7 days.
-                    </div>
-                  )}
                 </div>
               </div>
               
               {/* Blocked Column */}
-              <div className="focus-column" style={{ borderTop: '3px solid #c2542f' }}>
+              <div className="focus-column">
                 <div className="focus-column-header">
-                  <div className="focus-column-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c2542f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-                    </svg>
-                    Blocked
+                  <div className="focus-column-header-top">
+                    <span className="focus-column-title">Blocked</span>
+                    <span className="focus-column-count">{focusBlocked.length}</span>
                   </div>
-                  <span
-                    style={{
-                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#c2542f',
-                      backgroundColor: 'rgba(194, 84, 47, 0.1)',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    {focusBlocked.length}
-                  </span>
+                  <div className="focus-column-bar" style={{ backgroundColor: '#c2542f' }}></div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
                   {focusBlocked.map((t) => (
                     <div key={t._id} onClick={() => openEditTask(t)} className="focus-task-card">
-                      <div style={{ fontSize: '15px', fontWeight: 500, color: '#211d3a', marginBottom: '8px', lineHeight: 1.4 }}>
-                        <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                      <div className="focus-task-title">
+                        {t.description}
                         {t.recurrence && (
                           <span style={{ 
                             display: 'inline-flex', 
@@ -1157,93 +1049,35 @@ export default function App() {
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: t.deadline ? '8px' : '0px' }}>
-                        <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.5)' }}>
-                          {t.project}
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
-                          <span style={t.urgencyDotStyle}></span>
-                          <span style={{ fontSize: '11px', color: 'rgba(33, 29, 58, 0.65)' }}>{t.urgencyLabelText}</span>
-                        </span>
+                      <div className="focus-task-meta">
+                        <span className="focus-task-project">{t.project}</span>
+                        {t.deadline && (
+                          <span className="focus-task-date-gray">{t.deadlineFmt}</span>
+                        )}
                       </div>
-                      {t.deadline && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                          <span style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            color: t.overdue ? '#c1493f' : '#c68a2e',
-                            backgroundColor: t.overdue ? 'rgba(193, 73, 63, 0.1)' : 'rgba(198, 138, 46, 0.12)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.04em',
-                          }}>
-                            {t.overdue ? 'Overdue: ' : 'Due: '}{t.deadlineFmt}
-                          </span>
-                        </div>
-                      )}
+                      <div className="focus-badge-container">
+                        <span className="focus-badge badge-blocked">Blocked</span>
+                      </div>
                     </div>
                   ))}
-                  {focusBlocked.length === 0 && (
-                    <div
-                      style={{
-                        padding: '32px 16px',
-                        textAlign: 'center',
-                        color: 'rgba(33, 29, 58, 0.4)',
-                        fontSize: '14px',
-                        fontStyle: 'italic',
-                        backgroundColor: 'rgba(33, 29, 58, 0.02)',
-                        border: '1px dashed rgba(33, 29, 58, 0.1)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flex: 1,
-                      }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4b8f6a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}>
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                        <polyline points="9 11 11 13 15 9"></polyline>
-                      </svg>
-                      No blocked tasks!
-                    </div>
-                  )}
                 </div>
               </div>
 
               {/* Suggested Column */}
-              <div className="focus-column" style={{ borderTop: '3px solid #6b4fbb' }}>
+              <div className="focus-column">
                 <div className="focus-column-header">
-                  <div className="focus-column-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b4fbb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                    </svg>
-                    Suggested Next
+                  <div className="focus-column-header-top">
+                    <span className="focus-column-title">Suggested Next</span>
+                    <span className="focus-column-count">{focusSuggested.length}</span>
                   </div>
-                  <span
-                    style={{
-                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#6b4fbb',
-                      backgroundColor: 'rgba(107, 79, 187, 0.1)',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    {focusSuggested.length}
-                  </span>
+                  <div className="focus-column-bar" style={{ backgroundColor: '#d8f24a' }}></div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
                   {focusSuggested.map((t) => (
                     <div key={t._id} onClick={() => openEditTask(t)} className="focus-task-card">
-                      <div style={{ fontSize: '15px', fontWeight: 500, color: '#211d3a', marginBottom: '8px', lineHeight: 1.4 }}>
-                        <span style={{ verticalAlign: 'middle' }}>{t.description}</span>
+                      <div className="focus-task-title">
+                        {t.description}
                         {t.recurrence && (
                           <span style={{ 
                             display: 'inline-flex', 
@@ -1269,54 +1103,20 @@ export default function App() {
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-                        <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.5)' }}>
-                          {t.project}
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
-                          <span style={t.urgencyDotStyle}></span>
-                          <span style={{ fontSize: '11px', color: 'rgba(33, 29, 58, 0.65)' }}>{t.urgencyLabelText}</span>
+                      <div className="focus-task-meta">
+                        <span className="focus-task-project">{t.project}</span>
+                        <span className="focus-task-priority">
+                          <span className="focus-priority-dot" style={{ backgroundColor: urgencyColor[t.urgency] }}></span>
+                          {urgencyLabel[t.urgency]}
                         </span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                        <span style={t.suggestionReasonStyle}>
-                          {t.suggestionReason}
-                        </span>
-                      </div>
+                      {t.status === 'doing' && (
+                        <div className="focus-badge-container">
+                          <span className="focus-badge badge-in-progress">In progress</span>
+                        </div>
+                      )}
                     </div>
                   ))}
-                  {focusSuggested.length === 0 && (
-                    <div
-                      style={{
-                        padding: '32px 16px',
-                        textAlign: 'center',
-                        color: 'rgba(33, 29, 58, 0.4)',
-                        fontSize: '14px',
-                        fontStyle: 'italic',
-                        backgroundColor: 'rgba(33, 29, 58, 0.02)',
-                        border: '1px dashed rgba(33, 29, 58, 0.1)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flex: 1,
-                      }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b4fbb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}>
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                      </svg>
-                      Active queue is clear!
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -1695,15 +1495,15 @@ export default function App() {
                     <div
                       style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        marginBottom: '16px',
-                        paddingBottom: '10px',
-                        borderBottom: `2px solid ${col.accentColor}`,
+                        alignItems: 'baseline',
+                        justifyContent: 'space-between',
+                        marginBottom: '20px',
+                        paddingBottom: '8px',
+                        borderBottom: `3px solid ${col.accentColor}`,
                       }}
                     >
-                      <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '17px', fontWeight: 600 }}>{col.label}</span>
-                      <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '11px', color: 'rgba(33, 29, 58, 0.4)' }}>{col.count}</span>
+                      <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '18px', fontWeight: 600, color: '#211d3a' }}>{col.label}</span>
+                      <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '12px', fontWeight: 500, color: 'rgba(33, 29, 58, 0.4)' }}>{col.count}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '300px' }}>
                       {col.tasks.map((t) => (
@@ -1716,8 +1516,9 @@ export default function App() {
                         >
                           <div
                             style={{
-                              fontFamily: 'inherit',
-                              fontSize: '14.5px',
+                              fontFamily: "'Source Serif 4', Georgia, serif",
+                              fontSize: '15.5px',
+                              fontWeight: 500,
                               color: '#211d3a',
                               marginBottom: '10px',
                               lineHeight: 1.4,
@@ -1749,11 +1550,18 @@ export default function App() {
                               </span>
                             )}
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContext: 'space-between', justifyContent: 'space-between' }}>
-                            <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '10.5px', color: 'rgba(33, 29, 58, 0.5)' }}>{t.project}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11.5px' }}>
+                            <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", fontWeight: 500, color: 'rgba(33, 29, 58, 0.4)' }}>{t.project}</span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                               <span style={t.urgencyDotStyle}></span>
-                              <span style={{ ...t.deadlineTextStyle, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                              <span style={{ 
+                                fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", 
+                                fontWeight: t.overdue ? 700 : 500, 
+                                color: t.overdue ? '#c2542f' : 'rgba(33, 29, 58, 0.4)',
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '5px' 
+                              }}>
                                 {t.dateType === 'reminder' && (
                                   <svg 
                                     width="12" 

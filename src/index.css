@@ -485,27 +485,34 @@ input, select, textarea, button {
 .focus-column {
   display: flex;
   flex-direction: column;
-  background: rgba(33, 29, 58, 0.02);
-  border: 1px solid rgba(33, 29, 58, 0.07);
-  border-radius: 12px;
-  padding: 20px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   min-height: 450px;
-  box-shadow: 0 4px 14px rgba(33, 29, 58, 0.01);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: none;
+  transition: none;
 }
 
 .focus-column:hover {
-  border-color: rgba(33, 29, 58, 0.12);
-  box-shadow: 0 6px 18px rgba(33, 29, 58, 0.03);
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .focus-column-header {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  padding-bottom: 0;
+  margin-bottom: 20px;
+  border-bottom: none;
+}
+
+.focus-column-header-top {
+  display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  padding-bottom: 14px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid rgba(33, 29, 58, 0.08);
+  margin-bottom: 8px;
+  width: 100%;
 }
 
 .focus-column-title {
@@ -513,25 +520,117 @@ input, select, textarea, button {
   font-size: 18px;
   font-weight: 600;
   color: #211d3a;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+}
+
+.focus-column-count {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(33, 29, 58, 0.4);
+}
+
+.focus-column-bar {
+  height: 3px;
+  width: 100%;
 }
 
 .focus-task-card {
   background: #ffffff;
-  border: 1px solid rgba(33, 29, 58, 0.09);
+  border: 1px solid rgba(33, 29, 58, 0.08);
   border-radius: 10px;
-  padding: 16px;
+  padding: 18px 20px;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(33, 29, 58, 0.02);
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  margin-bottom: 12px;
 }
 
 .focus-task-card:hover {
   box-shadow: 0 8px 20px rgba(33, 29, 58, 0.09);
   transform: translateY(-2px);
   border-color: rgba(33, 29, 58, 0.18);
+}
+
+.focus-task-title {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: #211d3a;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.focus-task-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+}
+
+.focus-task-project {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  color: rgba(33, 29, 58, 0.4);
+  font-weight: 500;
+}
+
+.focus-task-date-red {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  color: #c2542f;
+}
+
+.focus-task-date-gold {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  color: #c68a2e;
+}
+
+.focus-task-date-gray {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-weight: 500;
+  color: rgba(33, 29, 58, 0.4);
+}
+
+.focus-task-priority {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(33, 29, 58, 0.55);
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.focus-priority-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.focus-badge-container {
+  display: flex;
+  margin-top: 10px;
+}
+
+.focus-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.focus-badge.badge-blocked {
+  background-color: rgba(193, 73, 63, 0.16);
+  color: #a83c33;
+}
+
+.focus-badge.badge-in-progress {
+  background-color: rgba(79, 111, 176, 0.16);
+  color: #3f5f9e;
 }
 
 @media (max-width: 1024px) {
@@ -546,6 +645,7 @@ input, select, textarea, button {
   }
   .focus-column {
     min-height: auto;
+    margin-bottom: 24px;
   }
 }
 
