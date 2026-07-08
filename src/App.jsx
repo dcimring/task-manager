@@ -3,6 +3,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../convex/_generated/api';
 
 export default function App() {
+  const localDateStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
   const [view, setView] = useState('focus');
   const [filters, setFilters] = useState({ search: '', project: 'all', urgency: 'all', status: 'active', type: 'all' });
   const [panel, setPanel] = useState(null); // null or { mode: 'new' | 'edit', draft: { ... } }
@@ -193,7 +194,12 @@ export default function App() {
   const fmtDate = (iso) => {
     if (!iso) return '—';
     const d = new Date(iso);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(iso) || iso.endsWith('T00:00:00.000Z');
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      ...(isDateOnly ? { timeZone: 'UTC' } : {})
+    });
   };
 
   const formatAge = (iso, baseDate) => {
@@ -263,7 +269,6 @@ export default function App() {
   };
 
   const getProjectStats = () => {
-    const now = new Date();
     return projects.map((p) => {
       const pt = tasks.filter((t) => t.project === p.name);
       const total = pt.length;
@@ -271,7 +276,7 @@ export default function App() {
       const doing = pt.filter((t) => t.status === 'doing').length;
       const done = pt.filter((t) => t.status === 'done').length;
       const blocked = pt.filter((t) => t.status === 'blocked').length;
-      const overdue = pt.filter((t) => t.deadline && t.status !== 'done' && new Date(t.deadline) < now).length;
+      const overdue = pt.filter((t) => t.deadline && t.status !== 'done' && t.deadline.slice(0, 10) < localDateStr).length;
       const completionRate = total ? Math.round((done / total) * 100) : 0;
       return { ...p, total, todo, doing, done, blocked, overdue, completionRate };
     });
@@ -458,7 +463,7 @@ export default function App() {
 
   const decorate = (t) => {
     const now = new Date();
-    const overdue = !!(t.deadline && t.status !== 'done' && new Date(t.deadline) < now);
+    const overdue = !!(t.deadline && t.status !== 'done' && t.deadline.slice(0, 10) < localDateStr);
     return {
       ...t,
       overdue,
@@ -499,22 +504,21 @@ export default function App() {
 
   // Focus view derived tasks computation
   const getFocusTasks = () => {
-    const now = new Date();
-    
     // 1. Overdue tasks (active, non-blocked, deadline has passed)
     const overdue = tasks
-      .filter((t) => t.status !== 'done' && t.status !== 'blocked' && t.dateType !== 'reminder' && t.deadline && new Date(t.deadline) < now)
+      .filter((t) => t.status !== 'done' && t.status !== 'blocked' && t.dateType !== 'reminder' && t.deadline && t.deadline.slice(0, 10) < localDateStr)
       .map(decorate)
       .sort((a, b) => new Date(a.deadline) - new Date(b.deadline)); // Most overdue first
 
     // 2. Upcoming tasks (active, non-blocked, deadline in the next 7 days)
     const next7Days = new Date();
     next7Days.setDate(next7Days.getDate() + 7);
+    const next7DaysLocalStr = next7Days.toLocaleDateString('sv-SE');
     const upcoming = tasks
       .filter((t) => {
         if (t.status === 'done' || t.status === 'blocked' || t.dateType === 'reminder' || !t.deadline) return false;
-        const dl = new Date(t.deadline);
-        return dl >= now && dl <= next7Days;
+        const dlStr = t.deadline.slice(0, 10);
+        return dlStr >= localDateStr && dlStr <= next7DaysLocalStr;
       })
       .map(decorate)
       .sort((a, b) => new Date(a.deadline) - new Date(b.deadline)); // Soonest first
@@ -529,7 +533,7 @@ export default function App() {
     const suggestedCandidates = tasks
       .filter((t) => {
         if (t.status === 'done' || t.status === 'blocked' || t.dateType === 'reminder') return false;
-        const isOverdue = t.deadline && new Date(t.deadline) < now;
+        const isOverdue = t.deadline && t.deadline.slice(0, 10) < localDateStr;
         return !isOverdue;
       })
       .map(decorate)
@@ -570,8 +574,7 @@ export default function App() {
         reasonColor = '#c1493f';
         reasonBg = 'rgba(193, 73, 63, 0.1)';
       } else if (t.deadline) {
-        const diffTime = new Date(t.deadline) - now;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = daysBetween(localDateStr, t.deadline.slice(0, 10));
         reason = diffDays === 0 ? 'Due today' : diffDays === 1 ? 'Due tomorrow' : `Due in ${diffDays} days`;
         reasonColor = '#c68a2e';
         reasonBg = 'rgba(198, 138, 46, 0.12)';
@@ -600,7 +603,6 @@ export default function App() {
 
   const { overdue: focusOverdue, upcoming: focusUpcoming, blocked: focusBlocked, suggested: focusSuggested } = getFocusTasks();
 
-  const localDateStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
   const activeReminders = tasks.filter((t) => 
     t.status !== 'done' && 
     t.dateType === 'reminder' && 
@@ -660,7 +662,7 @@ export default function App() {
 
   const totalTasks = tasks.length;
   const doneTasks = tasks.filter((t) => t.status === 'done').length;
-  const totalOverdue = tasks.filter((t) => t.deadline && t.status !== 'done' && new Date(t.deadline) < new Date()).length;
+  const totalOverdue = tasks.filter((t) => t.deadline && t.status !== 'done' && t.deadline.slice(0, 10) < localDateStr).length;
   const totalBlocked = tasks.filter((t) => t.status === 'blocked').length;
   const overallCompletionRate = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const completedWithDates = tasks.filter((t) => t.status === 'done' && t.dateCompleted);
