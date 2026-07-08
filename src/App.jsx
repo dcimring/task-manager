@@ -881,7 +881,7 @@ export default function App() {
                 marginBottom: '10px',
               }}
             >
-              00 — ACTION CENTER
+              {activeReminders.length > 0 ? '01 — ACTION CENTER' : '00 — ACTION CENTER'}
             </div>
             <div
               style={{
@@ -909,16 +909,18 @@ export default function App() {
             <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginBottom: '28px' }}></div>
 
             {activeReminders.length > 0 && (
-              <div
-                style={{
-                  backgroundColor: 'rgba(107, 79, 187, 0.06)',
-                  border: '1.5px solid rgba(107, 79, 187, 0.18)',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  marginBottom: '28px',
-                  animation: 'fadeInUp 0.35s ease',
-                }}
-              >
+              <div style={{ marginBottom: '28px', animation: 'fadeInUp 0.35s ease' }}>
+                <div
+                  style={{
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                    fontSize: '11px',
+                    letterSpacing: '0.14em',
+                    color: 'rgba(33, 29, 58, 0.4)',
+                    marginBottom: '10px',
+                  }}
+                >
+                  00 — ACTIVE REMINDERS
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   <span style={{ fontSize: '18px' }}>⏰</span>
                   <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '20px', fontWeight: 650, color: '#6b4fbb' }}>
@@ -929,7 +931,7 @@ export default function App() {
                     fontSize: '11px',
                     fontWeight: 700,
                     color: '#6b4fbb',
-                    backgroundColor: 'rgba(107, 79, 187, 0.12)',
+                    backgroundColor: 'rgba(107, 79, 187, 0.1)',
                     padding: '2px 8px',
                     borderRadius: '12px',
                     marginLeft: '8px'
@@ -941,17 +943,16 @@ export default function App() {
                   {activeReminders.map((r) => (
                     <div
                       key={r._id}
+                      className="focus-task-card"
                       style={{
-                        backgroundColor: '#fff',
-                        border: '1px solid rgba(33, 29, 58, 0.08)',
-                        borderRadius: '10px',
-                        padding: '14px 16px',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
                         gap: '12px',
-                        boxShadow: '0 2px 8px rgba(33, 29, 58, 0.03)',
+                        borderLeft: '4px solid #6b4fbb',
+                        padding: '14px 16px',
                       }}
+                      onClick={() => openEditTask(r)}
                     >
                       <div>
                         <div style={{ fontSize: '15px', fontWeight: 550, color: '#211d3a', lineHeight: 1.4 }}>
@@ -992,41 +993,49 @@ export default function App() {
                           )}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => moveTaskStatus(r._id, 'done')}
                           style={{
-                            flex: 1.2,
-                            padding: '7px 10px',
+                            flex: 1,
+                            padding: '6px 10px',
                             borderRadius: '6px',
-                            border: 'none',
-                            backgroundColor: 'rgba(75, 143, 106, 0.12)',
+                            border: '1px solid rgba(75, 143, 106, 0.25)',
+                            backgroundColor: 'transparent',
                             color: '#357a55',
                             fontSize: '12px',
                             fontWeight: 600,
                             cursor: 'pointer',
-                            transition: 'opacity 0.15s ease',
+                            transition: 'all 0.15s ease',
                           }}
-                          onMouseEnter={(e) => (e.target.style.opacity = '0.85')}
-                          onMouseLeave={(e) => (e.target.style.opacity = '1')}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(75, 143, 106, 0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                          }}
                         >
                           Dismiss
                         </button>
                         <button
                           onClick={() => snoozeReminder(r)}
                           style={{
-                            padding: '7px 10px',
+                            padding: '6px 10px',
                             borderRadius: '6px',
-                            border: 'none',
-                            backgroundColor: 'rgba(198, 138, 46, 0.12)',
+                            border: '1px solid rgba(198, 138, 46, 0.25)',
+                            backgroundColor: 'transparent',
                             color: '#c68a2e',
                             fontSize: '12px',
                             fontWeight: 600,
                             cursor: 'pointer',
-                            transition: 'opacity 0.15s ease',
+                            transition: 'all 0.15s ease',
                           }}
-                          onMouseEnter={(e) => (e.target.style.opacity = '0.85')}
-                          onMouseLeave={(e) => (e.target.style.opacity = '1')}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(198, 138, 46, 0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                          }}
                         >
                           Snooze
                         </button>
@@ -1042,19 +1051,23 @@ export default function App() {
                             dateType: 'deadline' 
                           })}
                           style={{
-                            flex: 1.5,
-                            padding: '7px 10px',
+                            flex: 1.2,
+                            padding: '6px 10px',
                             borderRadius: '6px',
-                            border: 'none',
-                            backgroundColor: 'rgba(107, 79, 187, 0.12)',
+                            border: '1px solid rgba(107, 79, 187, 0.25)',
+                            backgroundColor: 'transparent',
                             color: '#6b4fbb',
                             fontSize: '12px',
                             fontWeight: 600,
                             cursor: 'pointer',
-                            transition: 'opacity 0.15s ease',
+                            transition: 'all 0.15s ease',
                           }}
-                          onMouseEnter={(e) => (e.target.style.opacity = '0.85')}
-                          onMouseLeave={(e) => (e.target.style.opacity = '1')}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(107, 79, 187, 0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                          }}
                         >
                           Make Task
                         </button>
@@ -1062,6 +1075,7 @@ export default function App() {
                     </div>
                   ))}
                 </div>
+                <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginTop: '28px' }}></div>
               </div>
             )}
 
