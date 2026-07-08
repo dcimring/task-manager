@@ -881,7 +881,7 @@ export default function App() {
                 marginBottom: '10px',
               }}
             >
-              {activeReminders.length > 0 ? '01 — ACTION CENTER' : '00 — ACTION CENTER'}
+              00 — ACTION CENTER
             </div>
             <div
               style={{
@@ -908,176 +908,7 @@ export default function App() {
             </div>
             <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginBottom: '28px' }}></div>
 
-            {activeReminders.length > 0 && (
-              <div style={{ marginBottom: '28px', animation: 'fadeInUp 0.35s ease' }}>
-                <div
-                  style={{
-                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                    fontSize: '11px',
-                    letterSpacing: '0.14em',
-                    color: 'rgba(33, 29, 58, 0.4)',
-                    marginBottom: '10px',
-                  }}
-                >
-                  00 — ACTIVE REMINDERS
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                  <span style={{ fontSize: '18px' }}>⏰</span>
-                  <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '20px', fontWeight: 650, color: '#6b4fbb' }}>
-                    Active Reminders
-                  </span>
-                  <span style={{ 
-                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    color: '#6b4fbb',
-                    backgroundColor: 'rgba(107, 79, 187, 0.1)',
-                    padding: '2px 8px',
-                    borderRadius: '12px',
-                    marginLeft: '8px'
-                  }}>
-                    {activeReminders.length}
-                  </span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
-                  {activeReminders.map((r) => (
-                    <div
-                      key={r._id}
-                      className="focus-task-card"
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: '12px',
-                        borderLeft: '4px solid #6b4fbb',
-                        padding: '14px 16px',
-                      }}
-                      onClick={() => openEditTask(r)}
-                    >
-                      <div>
-                        <div style={{ fontSize: '15px', fontWeight: 550, color: '#211d3a', lineHeight: 1.4 }}>
-                          {r.description}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
-                          <span style={{ 
-                            fontSize: '10.5px', 
-                            fontWeight: 600, 
-                            color: 'rgba(33, 29, 58, 0.55)', 
-                            backgroundColor: 'rgba(33, 29, 58, 0.06)',
-                            padding: '2px 6px',
-                            borderRadius: '4px' 
-                          }}>
-                            {r.project}
-                          </span>
-                          {r.recurrence && (
-                            <span style={{ 
-                              display: 'inline-flex', 
-                              alignItems: 'center', 
-                              gap: '3px',
-                              fontSize: '9.5px',
-                              color: '#6b4fbb',
-                              backgroundColor: 'rgba(107, 79, 187, 0.08)',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontWeight: '700',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.05em',
-                            }}>
-                              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="23 4 23 10 17 10"></polyline>
-                                <polyline points="1 20 1 14 7 14"></polyline>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                              </svg>
-                              {r.recurrence}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => moveTaskStatus(r._id, 'done')}
-                          style={{
-                            flex: 1,
-                            padding: '6px 10px',
-                            borderRadius: '6px',
-                            border: '1px solid rgba(75, 143, 106, 0.25)',
-                            backgroundColor: 'transparent',
-                            color: '#357a55',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = 'rgba(75, 143, 106, 0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = 'transparent';
-                          }}
-                        >
-                          Dismiss
-                        </button>
-                        <button
-                          onClick={() => snoozeReminder(r)}
-                          style={{
-                            padding: '6px 10px',
-                            borderRadius: '6px',
-                            border: '1px solid rgba(198, 138, 46, 0.25)',
-                            backgroundColor: 'transparent',
-                            color: '#c68a2e',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = 'rgba(198, 138, 46, 0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = 'transparent';
-                          }}
-                        >
-                          Snooze
-                        </button>
-                        <button
-                          onClick={() => saveTaskMutation({ 
-                            _id: r._id, 
-                            description: r.description, 
-                            project: r.project, 
-                            urgency: r.urgency, 
-                            status: r.status, 
-                            deadline: r.deadline, 
-                            recurrence: r.recurrence || null, 
-                            dateType: 'deadline' 
-                          })}
-                          style={{
-                            flex: 1.2,
-                            padding: '6px 10px',
-                            borderRadius: '6px',
-                            border: '1px solid rgba(107, 79, 187, 0.25)',
-                            backgroundColor: 'transparent',
-                            color: '#6b4fbb',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = 'rgba(107, 79, 187, 0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = 'transparent';
-                          }}
-                        >
-                          Make Task
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ height: '1px', backgroundColor: 'rgba(33, 29, 58, 0.14)', marginTop: '28px' }}></div>
-              </div>
-            )}
+
 
             <div className="focus-grid">
               {/* Overdue Column */}
@@ -2827,7 +2658,7 @@ export default function App() {
       )}
 
       {/* Active Reminders Float Toast */}
-      {view !== 'focus' && activeReminders.length > 0 && (
+      {activeReminders.length > 0 && (
         <div className="active-reminders-toast">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(33, 29, 58, 0.08)', paddingBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#6b4fbb', fontSize: '15px' }}>

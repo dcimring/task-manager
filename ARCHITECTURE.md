@@ -58,7 +58,7 @@ Application state is synchronized in real-time with the Convex backend using rea
 ### 3. Rendering and Derived State
 
 To keep state simple and singular, views are rendered dynamically by deriving state in real-time from the master `tasks` list:
-* **Active Reminders**: Incomplete tasks of type `"reminder"` whose trigger date is today or in the past. These are rendered as a custom alert card at the top of the **Focus** view, or as a global responsive float/toast if the user is on another screen.
+* **Active Reminders**: Incomplete tasks of type `"reminder"` whose trigger date is today or in the past. These are rendered as a global responsive floating toast overlay at the bottom-right corner of all views, ensuring high visibility without cluttering individual page layouts.
 * **Focus Columns**: Dynamic filtering of active, non-reminder tasks into four lists:
   * *Overdue*: Tasks with status != `'done'`, status != `'blocked'`, `dateType !== 'reminder'`, and deadlines in the past.
   * *Upcoming*: Tasks with status != `'done'`, status != `'blocked'`, `dateType !== 'reminder'`, and deadlines in the next 7 days.
