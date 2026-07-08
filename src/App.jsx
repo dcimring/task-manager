@@ -2738,109 +2738,145 @@ export default function App() {
         </>
       )}
 
-      {/* Active Reminders Float Toast */}
-      {activeReminders.length > 0 && (
-        <div className="active-reminders-toast">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderBottom: '1px solid rgba(33, 29, 58, 0.08)', paddingBottom: '10px' }}>
-            <div
-              style={{
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                fontSize: '9px',
-                letterSpacing: '0.12em',
-                color: 'rgba(33, 29, 58, 0.45)',
-                textTransform: 'uppercase',
-              }}
-            >
-              Active Alerts
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 650, color: '#6b4fbb', fontFamily: "'Playfair Display', Georgia, serif", fontSize: '17px' }}>
-                <svg 
-                  width="15" 
-                  height="15" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="#6b4fbb" 
-                  strokeWidth="2.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  style={{ verticalAlign: 'middle' }}
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                Reminders Due
-              </div>
-              <span style={{ 
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#6b4fbb',
-                backgroundColor: 'rgba(107, 79, 187, 0.1)',
-                padding: '2px 7px',
-                borderRadius: '10px'
+      {/* Active Reminders Float Toasts */}
+      {activeReminders.map((r, idx) => (
+        <div 
+          key={r._id} 
+          className="active-reminders-toast"
+          style={{
+            bottom: `${24 + idx * 170}px`,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: '8px'
               }}>
-                {activeReminders.length}
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: '#d8f24a'
+                }} />
+              </div>
+              <span style={{
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                fontSize: '10.5px',
+                fontWeight: '600',
+                letterSpacing: '0.12em',
+                color: 'rgba(247, 242, 232, 0.45)',
+              }}>
+                REMINDER
               </span>
             </div>
+            <span style={{
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+              fontSize: '11px',
+              fontWeight: '600',
+              letterSpacing: '0.05em',
+              color: '#d8f24a',
+            }}>
+              {r.project}
+            </span>
           </div>
-          <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, paddingRight: '2px' }}>
-            {activeReminders.map((r) => (
-              <div key={r._id} style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingBottom: '12px', borderBottom: '1px dashed rgba(33, 29, 58, 0.08)' }}>
-                <div style={{ fontSize: '13px', color: '#211d3a', fontWeight: 550, lineHeight: 1.3 }}>
-                  {r.description}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <span style={{ 
-                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                    fontSize: '9px', 
-                    fontWeight: 600, 
-                    letterSpacing: '0.05em',
-                    color: 'rgba(33, 29, 58, 0.5)', 
-                    backgroundColor: 'rgba(33, 29, 58, 0.06)',
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    textTransform: 'uppercase',
-                  }}>
-                    {r.project}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                  <button
-                    onClick={() => moveTaskStatus(r._id, 'done')}
-                    className="toast-action-btn toast-btn-dismiss"
-                    style={{ flex: 1 }}
-                  >
-                    Dismiss
-                  </button>
-                  <button
-                    onClick={() => snoozeReminder(r)}
-                    className="toast-action-btn toast-btn-snooze"
-                  >
-                    Snooze
-                  </button>
-                  <button
-                    onClick={() => saveTaskMutation({ 
-                      _id: r._id, 
-                      description: r.description, 
-                      project: r.project, 
-                      urgency: r.urgency, 
-                      status: r.status, 
-                      deadline: r.deadline, 
-                      recurrence: r.recurrence || null, 
-                      dateType: 'deadline' 
-                    })}
-                    className="toast-action-btn toast-btn-make"
-                    style={{ flex: 1.2 }}
-                  >
-                    Make Task
-                  </button>
-                </div>
-              </div>
-            ))}
+
+          <div style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: '19px',
+            color: '#ffffff',
+            lineHeight: 1.35,
+            margin: '12px 0 18px 0',
+            fontWeight: 500,
+          }}>
+            {r.description}
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={() => saveTaskMutation({ 
+                _id: r._id, 
+                description: r.description, 
+                project: r.project, 
+                urgency: r.urgency, 
+                status: r.status, 
+                deadline: r.deadline, 
+                recurrence: r.recurrence || null, 
+                dateType: 'deadline' 
+              })}
+              style={{
+                backgroundColor: '#d8f24a',
+                color: '#211d3a',
+                border: 'none',
+                borderRadius: '12px',
+                padding: '10px 20px',
+                fontSize: '13px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'opacity 0.15s ease',
+              }}
+              onMouseEnter={(e) => e.target.style.opacity = '0.9'}
+              onMouseLeave={(e) => e.target.style.opacity = '1'}
+            >
+              Make task
+            </button>
+            <button
+              onClick={() => snoozeReminder(r)}
+              style={{
+                backgroundColor: 'transparent',
+                color: '#ffffff',
+                border: '1.5px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                padding: '10px 18px',
+                fontSize: '13px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+              }}
+            >
+              Snooze
+            </button>
+            <button
+              onClick={() => moveTaskStatus(r._id, 'done')}
+              style={{
+                backgroundColor: 'transparent',
+                color: '#ffffff',
+                border: '1.5px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                padding: '10px 18px',
+                fontSize: '13px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+              }}
+            >
+              Dismiss
+            </button>
           </div>
         </div>
-      )}
+      ))}
 
       {/* Update Toast */}
       {updateVersion && updateVersion !== dismissedVersion && (

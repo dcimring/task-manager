@@ -637,62 +637,22 @@ input, select, textarea, button {
 
 .active-reminders-toast {
   position: fixed;
-  bottom: 24px;
   right: 24px;
   z-index: 40;
-  background-color: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(107, 79, 187, 0.16);
-  border-left: 4px solid #6b4fbb;
-  box-shadow: 0 12px 40px rgba(33, 29, 58, 0.12);
-  border-radius: 12px;
-  padding: 16px 18px;
-  width: 320px;
-  max-height: 360px;
+  background-color: #211d3a;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  border-radius: 20px;
+  padding: 20px 22px;
+  width: 360px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  animation: fadeInUp 0.35s ease;
-}
-
-.toast-action-btn {
-  background: transparent;
-  border-radius: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 5px 8px;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.toast-btn-dismiss {
-  border: 1px solid rgba(75, 143, 106, 0.25);
-  color: #357a55;
-}
-.toast-btn-dismiss:hover {
-  background-color: rgba(75, 143, 106, 0.08);
-}
-
-.toast-btn-snooze {
-  border: 1px solid rgba(198, 138, 46, 0.25);
-  color: #c68a2e;
-}
-.toast-btn-snooze:hover {
-  background-color: rgba(198, 138, 46, 0.08);
-}
-
-.toast-btn-make {
-  border: 1px solid rgba(107, 79, 187, 0.25);
-  color: #6b4fbb;
-}
-.toast-btn-make:hover {
-  background-color: rgba(107, 79, 187, 0.08);
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 @media (max-width: 768px) {
   .active-reminders-toast {
-    bottom: 80px;
+    bottom: 80px !important;
     left: 16px;
     right: 16px;
     width: auto;
