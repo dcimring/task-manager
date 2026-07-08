@@ -640,13 +640,16 @@ input, select, textarea, button {
   bottom: 24px;
   right: 24px;
   z-index: 40;
-  background-color: #ffffff;
-  border: 1.5px solid rgba(107, 79, 187, 0.25);
-  box-shadow: 0 8px 30px rgba(33, 29, 58, 0.15);
+  background-color: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(107, 79, 187, 0.16);
+  border-left: 4px solid #6b4fbb;
+  box-shadow: 0 12px 40px rgba(33, 29, 58, 0.12);
   border-radius: 12px;
   padding: 16px 18px;
   width: 320px;
-  max-height: 340px;
+  max-height: 360px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -654,11 +657,37 @@ input, select, textarea, button {
 }
 
 .toast-action-btn {
-  transition: opacity 0.15s ease;
+  background: transparent;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px 8px;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.toast-action-btn:hover {
-  opacity: 0.82;
+.toast-btn-dismiss {
+  border: 1px solid rgba(75, 143, 106, 0.25);
+  color: #357a55;
+}
+.toast-btn-dismiss:hover {
+  background-color: rgba(75, 143, 106, 0.08);
+}
+
+.toast-btn-snooze {
+  border: 1px solid rgba(198, 138, 46, 0.25);
+  color: #c68a2e;
+}
+.toast-btn-snooze:hover {
+  background-color: rgba(198, 138, 46, 0.08);
+}
+
+.toast-btn-make {
+  border: 1px solid rgba(107, 79, 187, 0.25);
+  color: #6b4fbb;
+}
+.toast-btn-make:hover {
+  background-color: rgba(107, 79, 187, 0.08);
 }
 
 @media (max-width: 768px) {
