@@ -9,7 +9,7 @@ Check items off as they land; each numbered section is intended to be one unit o
 |---|------|----------|--------|
 | 1 | Real backend authentication | Critical | ☑ Done (2026-07-12) |
 | 2 | Schema hardening (indexes, literal types, project IDs) | High | ☑ Done (2026-07-12) |
-| 3 | Recurring-task edge cases | High | ☐ Not started |
+| 3 | Recurring-task edge cases | High | ☑ Done (2026-07-12) |
 | 4 | Split App.jsx into components | Medium | ☐ Not started |
 | 5 | Tests, linting, CI | Medium | ☐ Not started |
 | 6 | Convert frontend to TypeScript | Medium | ☐ Not started |
@@ -94,7 +94,32 @@ Current code diverges from the project's own Convex guidelines
   - Store `projectId: v.id("projects")` on tasks; migrate existing data
     (the `convex-migration-helper` skill is installed).
 
-## 3. Recurring-task edge cases (High)
+## 3. Recurring-task edge cases (High) — DONE
+
+Completed 2026-07-12. Extracted a shared `computeStatusUpdate` helper
+(`convex/tasks.ts`) used by both `tasks.save` and `tasks.moveStatus`. It
+derives `dateStarted`/`dateCompleted` for a status transition and, when a
+transition just completed a recurring task, computes (and validates) the
+next clone via `calculateNextDeadline` — all before either mutation performs
+any `ctx.db.patch`/`insert`. A malformed deadline now throws before the task
+is touched, instead of after it's been patched to done; verified via
+`npx convex run` that the original task is left completely unchanged when
+`calculateNextDeadline` throws (Convex also rolls back the whole transaction
+on any throw, but this ordering removes the optimistic-UI flicker where the
+client briefly shows "done" before the server rejects it).
+
+Decision: kept catch-up semantics — a long-overdue recurring task still
+computes its next deadline from the *old* deadline, not `max(deadline,
+now)`. This is explicit now (see comment in `computeStatusUpdate`) rather
+than incidental.
+
+Also fixed a latent inconsistency: `tasks.save`'s update path previously
+cloned the recurring task's `dateType` from the *existing* row instead of
+the just-submitted value, while every other field on the clone (description,
+urgency, project) used the new value. The shared helper now uses the
+post-mutation `dateType` consistently.
+
+Original findings:
 
 - `calculateNextDeadline` (`convex/tasks.ts`) throws on unknown recurrence
   values *after* the task has already been patched to done, leaving a

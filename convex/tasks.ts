@@ -1,5 +1,5 @@
 import { mutation, query, MutationCtx } from "./_generated/server";
-import { v } from "convex/values";
+import { v, Infer } from "convex/values";
 import { requireUser } from "./lib/auth";
 import { Id } from "./_generated/dataModel";
 import {
@@ -8,6 +8,10 @@ import {
   recurrenceValidator,
   dateTypeValidator,
 } from "./schema";
+
+type Status = Infer<typeof statusValidator>;
+type Recurrence = Infer<typeof recurrenceValidator>;
+type DateType = Infer<typeof dateTypeValidator>;
 
 export const get = query({
   args: {},
@@ -74,6 +78,67 @@ function calculateNextDeadline(recurrence: string, currentDeadlineStr: string): 
   throw new Error(`Unsupported recurrence type: ${recurrence}`);
 }
 
+type RecurrenceClone = {
+  deadline: string;
+  recurrence: Recurrence;
+  dateType: DateType | null;
+  dateAdded: string;
+  dateStarted: null;
+  dateCompleted: null;
+  status: "todo";
+};
+
+// Shared by `save` and `moveStatus`: derives dateStarted/dateCompleted for a
+// status transition, and — if the transition just completed a recurring
+// task — the next clone to insert. Computes (and validates) everything
+// up front so a bad recurrence/deadline throws before any db writes happen,
+// rather than after the task has already been patched to done.
+function computeStatusUpdate(args: {
+  previousStatus: Status | null;
+  newStatus: Status;
+  previousDateStarted: string | null;
+  previousDateCompleted: string | null;
+  recurrence: Recurrence | null;
+  dateType: DateType | null;
+  deadline: string | null;
+  now: string;
+}): {
+  dateStarted: string | null;
+  dateCompleted: string | null;
+  recurrenceClone: RecurrenceClone | null;
+} {
+  let dateStarted = args.previousDateStarted;
+  let dateCompleted = args.previousDateCompleted;
+
+  if (args.newStatus === "doing" && !dateStarted) {
+    dateStarted = args.now;
+  }
+  if (args.newStatus === "done") {
+    if (!dateStarted) dateStarted = args.now;
+    if (!dateCompleted) dateCompleted = args.now;
+  }
+
+  let recurrenceClone: RecurrenceClone | null = null;
+  const justCompleted = args.newStatus === "done" && args.previousStatus !== "done";
+  if (justCompleted && args.recurrence && args.deadline) {
+    // Catch-up semantics: the next deadline is always the old deadline plus
+    // one interval, even if that lands in the past for a task completed
+    // long after it was due. (Deliberate choice — see IMPROVEMENTS.md #3.)
+    const nextDeadline = calculateNextDeadline(args.recurrence, args.deadline);
+    recurrenceClone = {
+      deadline: nextDeadline,
+      recurrence: args.recurrence,
+      dateType: args.dateType,
+      dateAdded: args.now,
+      dateStarted: null,
+      dateCompleted: null,
+      status: "todo",
+    };
+  }
+
+  return { dateStarted, dateCompleted, recurrenceClone };
+}
+
 export const save = mutation({
   args: {
     _id: v.optional(v.id("tasks")),
@@ -89,90 +154,66 @@ export const save = mutation({
     await requireUser(ctx);
     const now = new Date().toISOString();
     const { _id, ...data } = args;
+    const recurrence = data.recurrence || null;
+    const dateType = data.dateType || null;
+
+    const existing = _id ? await ctx.db.get(_id) : null;
+    if (_id && !existing) throw new Error("Task not found");
+
+    // Validates recurrence/deadline (throws on a bad value) before any
+    // write below happens.
+    const { dateStarted, dateCompleted, recurrenceClone } = computeStatusUpdate({
+      previousStatus: existing?.status ?? null,
+      newStatus: data.status,
+      previousDateStarted: existing?.dateStarted ?? null,
+      previousDateCompleted: existing?.dateCompleted ?? null,
+      recurrence,
+      dateType,
+      deadline: data.deadline,
+      now,
+    });
 
     const projectId = await resolveProject(ctx, data.project);
 
+    let taskId: Id<"tasks">;
     if (_id) {
-      const existing = await ctx.db.get(_id);
-      if (!existing) throw new Error("Task not found");
-
-      let dateStarted = existing.dateStarted;
-      let dateCompleted = existing.dateCompleted;
-
-      if (data.status === "doing" && !existing.dateStarted) {
-        dateStarted = now;
-      }
-      if (data.status === "done") {
-        if (!existing.dateStarted) dateStarted = now;
-        if (!existing.dateCompleted) dateCompleted = now;
-      }
-
       await ctx.db.patch(_id, {
         description: data.description,
         projectId,
         urgency: data.urgency,
         status: data.status,
         deadline: data.deadline,
-        recurrence: data.recurrence || null,
-        dateType: data.dateType || null,
+        recurrence,
+        dateType,
         dateStarted,
         dateCompleted,
       });
-
-      // Clone task if completed and recurrence is configured with a deadline
-      if (data.status === "done" && existing.status !== "done" && data.recurrence && data.deadline) {
-        const nextDeadline = calculateNextDeadline(data.recurrence, data.deadline);
-        await ctx.db.insert("tasks", {
-          description: data.description,
-          projectId,
-          urgency: data.urgency,
-          status: "todo",
-          deadline: nextDeadline,
-          recurrence: data.recurrence,
-          dateType: existing.dateType || null,
-          dateAdded: now,
-          dateStarted: null,
-          dateCompleted: null,
-        });
-      }
-
-      return _id;
+      taskId = _id;
     } else {
-      const dateAdded = now;
-      const dateStarted = data.status === "doing" || data.status === "done" ? now : null;
-      const dateCompleted = data.status === "done" ? now : null;
-
-      const newTaskId = await ctx.db.insert("tasks", {
+      taskId = await ctx.db.insert("tasks", {
         description: data.description,
         projectId,
         urgency: data.urgency,
         status: data.status,
         deadline: data.deadline,
-        recurrence: data.recurrence || null,
-        dateType: data.dateType || null,
-        dateAdded,
+        recurrence,
+        dateType,
+        dateAdded: now,
         dateStarted,
         dateCompleted,
       });
-
-      if (data.status === "done" && data.recurrence && data.deadline) {
-        const nextDeadline = calculateNextDeadline(data.recurrence, data.deadline);
-        await ctx.db.insert("tasks", {
-          description: data.description,
-          projectId,
-          urgency: data.urgency,
-          status: "todo",
-          deadline: nextDeadline,
-          recurrence: data.recurrence,
-          dateType: data.dateType || null,
-          dateAdded: now,
-          dateStarted: null,
-          dateCompleted: null,
-        });
-      }
-
-      return newTaskId;
     }
+
+    if (recurrenceClone) {
+      await ctx.db.insert("tasks", {
+        description: data.description,
+        projectId,
+        urgency: data.urgency,
+        ...recurrenceClone,
+      });
+    }
+
+    return taskId;
   },
 });
 
@@ -195,16 +236,18 @@ export const moveStatus = mutation({
     const existing = await ctx.db.get(args.id);
     if (!existing) throw new Error("Task not found");
 
-    let dateStarted = existing.dateStarted;
-    let dateCompleted = existing.dateCompleted;
-
-    if (args.status === "doing" && !dateStarted) {
-      dateStarted = now;
-    }
-    if (args.status === "done") {
-      if (!dateStarted) dateStarted = now;
-      if (!dateCompleted) dateCompleted = now;
-    }
+    // Validates recurrence/deadline (throws on a bad value) before the
+    // patch below happens.
+    const { dateStarted, dateCompleted, recurrenceClone } = computeStatusUpdate({
+      previousStatus: existing.status,
+      newStatus: args.status,
+      previousDateStarted: existing.dateStarted,
+      previousDateCompleted: existing.dateCompleted,
+      recurrence: existing.recurrence || null,
+      dateType: existing.dateType || null,
+      deadline: existing.deadline,
+      now,
+    });
 
     await ctx.db.patch(args.id, {
       status: args.status,
@@ -212,20 +255,12 @@ export const moveStatus = mutation({
       dateCompleted,
     });
 
-    // Check recurrence and generate next task
-    if (args.status === "done" && existing.status !== "done" && existing.recurrence && existing.deadline) {
-      const nextDeadline = calculateNextDeadline(existing.recurrence, existing.deadline);
+    if (recurrenceClone) {
       await ctx.db.insert("tasks", {
         description: existing.description,
         projectId: existing.projectId,
         urgency: existing.urgency,
-        status: "todo",
-        deadline: nextDeadline,
-        recurrence: existing.recurrence,
-        dateType: existing.dateType || null,
-        dateAdded: now,
-        dateStarted: null,
-        dateCompleted: null,
+        ...recurrenceClone,
       });
     }
   },
