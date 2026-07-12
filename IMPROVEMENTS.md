@@ -8,7 +8,7 @@ Check items off as they land; each numbered section is intended to be one unit o
 | # | Item | Priority | Status |
 |---|------|----------|--------|
 | 1 | Real backend authentication | Critical | ☐ Not started |
-| 2 | Schema hardening (indexes, literal types, project IDs) | High | ☐ Not started |
+| 2 | Schema hardening (indexes, literal types, project IDs) | High | ☑ Done (2026-07-12) |
 | 3 | Recurring-task edge cases | High | ☐ Not started |
 | 4 | Split App.jsx into components | Medium | ☐ Not started |
 | 5 | Tests, linting, CI | Medium | ☐ Not started |
@@ -39,7 +39,19 @@ The current login is frontend-only and provides no actual security:
 - Remove the hand-rolled JWT decode + localStorage session in `App.jsx` in
   favor of the auth provider's client.
 
-## 2. Schema hardening (High)
+## 2. Schema hardening (High) — DONE
+
+Completed 2026-07-12. Indexes (`projects.by_name`, `tasks.by_projectId`),
+literal-type enums for urgency/status/recurrence/dateType, and tasks now
+reference projects via `projectId`. `tasks.get` joins the project name in, so
+the client API is unchanged; project renames are a single patch. Data was
+migrated in place via one-off migrations (since deleted).
+
+Note discovered during this work: the deployed frontend points at the **dev**
+Convex deployment (`fearless-porpoise-401`), not the prod one
+(`proficient-hound-901`). Worth cleaning up when tackling item 1 (auth).
+
+Original findings:
 
 Current code diverges from the project's own Convex guidelines
 (`convex/_generated/ai/guidelines.md`):

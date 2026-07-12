@@ -1,12 +1,42 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
+import {
+  urgencyValidator,
+  statusValidator,
+  recurrenceValidator,
+  dateTypeValidator,
+} from "./schema";
 
 export const get = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("tasks").collect();
+    const [tasks, projects] = await Promise.all([
+      ctx.db.query("tasks").collect(),
+      ctx.db.query("projects").collect(),
+    ]);
+    const nameById = new Map(projects.map((p) => [p._id, p.name]));
+    // Join the project name in so clients can keep working with names.
+    return tasks.map((t) => ({
+      ...t,
+      project: (t.projectId && nameById.get(t.projectId)) || "General",
+    }));
   },
 });
+
+// Finds a project by name, creating it if needed. Names are unique via by_name.
+async function resolveProject(
+  ctx: MutationCtx,
+  rawName: string,
+): Promise<Id<"projects">> {
+  const name = rawName.trim() || "General";
+  const existing = await ctx.db
+    .query("projects")
+    .withIndex("by_name", (q) => q.eq("name", name))
+    .unique();
+  if (existing) return existing._id;
+  return await ctx.db.insert("projects", { name, description: "" });
+}
 
 function calculateNextDeadline(recurrence: string, currentDeadlineStr: string): string {
   const baseDate = new Date(currentDeadlineStr);
@@ -47,29 +77,17 @@ export const save = mutation({
     _id: v.optional(v.id("tasks")),
     description: v.string(),
     project: v.string(),
-    urgency: v.string(),
-    status: v.string(),
+    urgency: urgencyValidator,
+    status: statusValidator,
     deadline: v.union(v.string(), v.null()),
-    recurrence: v.optional(v.union(v.string(), v.null())),
-    dateType: v.optional(v.union(v.string(), v.null())),
+    recurrence: v.optional(v.union(recurrenceValidator, v.null())),
+    dateType: v.optional(v.union(dateTypeValidator, v.null())),
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
     const { _id, ...data } = args;
 
-    // Ensure the project exists
-    const projectName = data.project.trim() || "General";
-    const existingProject = await ctx.db
-      .query("projects")
-      .filter((q) => q.eq(q.field("name"), projectName))
-      .first();
-
-    if (!existingProject) {
-      await ctx.db.insert("projects", {
-        name: projectName,
-        description: "",
-      });
-    }
+    const projectId = await resolveProject(ctx, data.project);
 
     if (_id) {
       const existing = await ctx.db.get(_id);
@@ -88,7 +106,7 @@ export const save = mutation({
 
       await ctx.db.patch(_id, {
         description: data.description,
-        project: projectName,
+        projectId,
         urgency: data.urgency,
         status: data.status,
         deadline: data.deadline,
@@ -103,7 +121,7 @@ export const save = mutation({
         const nextDeadline = calculateNextDeadline(data.recurrence, data.deadline);
         await ctx.db.insert("tasks", {
           description: data.description,
-          project: projectName,
+          projectId,
           urgency: data.urgency,
           status: "todo",
           deadline: nextDeadline,
@@ -123,7 +141,7 @@ export const save = mutation({
 
       const newTaskId = await ctx.db.insert("tasks", {
         description: data.description,
-        project: projectName,
+        projectId,
         urgency: data.urgency,
         status: data.status,
         deadline: data.deadline,
@@ -138,7 +156,7 @@ export const save = mutation({
         const nextDeadline = calculateNextDeadline(data.recurrence, data.deadline);
         await ctx.db.insert("tasks", {
           description: data.description,
-          project: projectName,
+          projectId,
           urgency: data.urgency,
           status: "todo",
           deadline: nextDeadline,
@@ -165,7 +183,7 @@ export const remove = mutation({
 export const moveStatus = mutation({
   args: {
     id: v.id("tasks"),
-    status: v.string(),
+    status: statusValidator,
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
@@ -194,7 +212,7 @@ export const moveStatus = mutation({
       const nextDeadline = calculateNextDeadline(existing.recurrence, existing.deadline);
       await ctx.db.insert("tasks", {
         description: existing.description,
-        project: existing.project,
+        projectId: existing.projectId,
         urgency: existing.urgency,
         status: "todo",
         deadline: nextDeadline,

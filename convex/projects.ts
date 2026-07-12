@@ -19,8 +19,8 @@ export const create = mutation({
 
     const existing = await ctx.db
       .query("projects")
-      .filter((q) => q.eq(q.field("name"), name))
-      .first();
+      .withIndex("by_name", (q) => q.eq("name", name))
+      .unique();
 
     if (existing) {
       return existing._id;
@@ -46,37 +46,21 @@ export const update = mutation({
     const oldProject = await ctx.db.get(args.id);
     if (!oldProject) throw new Error("Project not found");
 
-    const oldName = oldProject.name;
-
     // Check if new name already exists on another project
-    if (newName !== oldName) {
+    if (newName !== oldProject.name) {
       const existing = await ctx.db
         .query("projects")
-        .filter((q) => q.eq(q.field("name"), newName))
-        .first();
+        .withIndex("by_name", (q) => q.eq("name", newName))
+        .unique();
       if (existing) {
         throw new Error("A project with that name already exists");
       }
     }
 
-    // Update the project details
+    // Tasks reference projects by id, so renaming is a single patch.
     await ctx.db.patch(args.id, {
       name: newName,
       description: args.description,
     });
-
-    // If the name changed, update all tasks associated with this project
-    if (newName !== oldName) {
-      const tasksToUpdate = await ctx.db
-        .query("tasks")
-        .filter((q) => q.eq(q.field("project"), oldName))
-        .collect();
-
-      for (const task of tasksToUpdate) {
-        await ctx.db.patch(task._id, {
-          project: newName,
-        });
-      }
-    }
   },
 });
