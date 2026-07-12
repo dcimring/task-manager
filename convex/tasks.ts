@@ -1,5 +1,6 @@
 import { mutation, query, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
+import { requireUser } from "./lib/auth";
 import { Id } from "./_generated/dataModel";
 import {
   urgencyValidator,
@@ -11,6 +12,7 @@ import {
 export const get = query({
   args: {},
   handler: async (ctx) => {
+    await requireUser(ctx);
     const [tasks, projects] = await Promise.all([
       ctx.db.query("tasks").collect(),
       ctx.db.query("projects").collect(),
@@ -84,6 +86,7 @@ export const save = mutation({
     dateType: v.optional(v.union(dateTypeValidator, v.null())),
   },
   handler: async (ctx, args) => {
+    await requireUser(ctx);
     const now = new Date().toISOString();
     const { _id, ...data } = args;
 
@@ -176,6 +179,7 @@ export const save = mutation({
 export const remove = mutation({
   args: { id: v.id("tasks") },
   handler: async (ctx, args) => {
+    await requireUser(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -186,6 +190,7 @@ export const moveStatus = mutation({
     status: statusValidator,
   },
   handler: async (ctx, args) => {
+    await requireUser(ctx);
     const now = new Date().toISOString();
     const existing = await ctx.db.get(args.id);
     if (!existing) throw new Error("Task not found");

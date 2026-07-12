@@ -1,9 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireUser } from "./lib/auth";
 
 export const get = query({
   args: {},
   handler: async (ctx) => {
+    await requireUser(ctx);
     return await ctx.db.query("projects").collect();
   },
 });
@@ -14,6 +16,7 @@ export const create = mutation({
     description: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireUser(ctx);
     const name = args.name.trim();
     if (!name) throw new Error("Project name cannot be empty");
 
@@ -40,6 +43,7 @@ export const update = mutation({
     description: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireUser(ctx);
     const newName = args.name.trim();
     if (!newName) throw new Error("Project name cannot be empty");
 

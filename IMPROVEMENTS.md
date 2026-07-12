@@ -7,7 +7,7 @@ Check items off as they land; each numbered section is intended to be one unit o
 
 | # | Item | Priority | Status |
 |---|------|----------|--------|
-| 1 | Real backend authentication | Critical | ☐ Not started |
+| 1 | Real backend authentication | Critical | ☑ Done (2026-07-12) |
 | 2 | Schema hardening (indexes, literal types, project IDs) | High | ☑ Done (2026-07-12) |
 | 3 | Recurring-task edge cases | High | ☐ Not started |
 | 4 | Split App.jsx into components | Medium | ☐ Not started |
@@ -19,7 +19,30 @@ Check items off as they land; each numbered section is intended to be one unit o
 
 ---
 
-## 1. Real backend authentication (Critical)
+## 1. Real backend authentication (Critical) — DONE
+
+Completed 2026-07-12. Convex now verifies Google ID tokens cryptographically
+(OIDC via `convex/auth.config.ts`, `domain: accounts.google.com`, audience =
+the existing `AUTH_GOOGLE_CLIENT_ID` deployment var). Every query/mutation
+calls `requireUser` (`convex/lib/auth.ts`), which requires a verified email
+matching the `ALLOWED_EMAILS` deployment var — fails closed if unset. The
+client uses `ConvexProviderWithAuth` with a `GoogleAuthProvider`
+(`src/auth.jsx`) that stores the GIS credential and hands it to Convex.
+Verified: unauthenticated CLI calls and a forged localStorage session both
+get zero data and fall back to the login screen.
+
+Design notes / follow-ups:
+- Google ID tokens expire after ~1 hour. On expiry (or server rejection) the
+  app attempts a silent One Tap re-auth; if that fails it signs out to the
+  login screen. If hourly One Tap becomes annoying, the upgrade path is
+  Convex Auth or Clerk with refresh tokens — requires the Google OAuth
+  client secret and a redirect-URI change in Google Cloud Console.
+- The live app still points at the dev Convex deployment
+  (`fearless-porpoise-401`); the prod deployment is unused. If that's ever
+  cleaned up, remember to set `AUTH_GOOGLE_CLIENT_ID` and `ALLOWED_EMAILS`
+  on the new deployment (auth fails closed without them).
+
+Original findings:
 
 The current login is frontend-only and provides no actual security:
 
