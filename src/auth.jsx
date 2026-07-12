@@ -165,18 +165,33 @@ export function GoogleAuthProvider({ children }) {
     });
   }, []);
 
+  // Proactively renew the session ~5 minutes before the token expires, so a
+  // fresh token is already on hand when Convex asks for one.
+  useEffect(() => {
+    if (!session || !scriptReady) return;
+    const msLeft = session.exp * 1000 - Date.now();
+    if (msLeft <= 0) return;
+    const renewIn = Math.max(msLeft - 5 * 60000, 5000);
+    const timer = setTimeout(() => {
+      promptForFreshSession();
+    }, renewIn);
+    return () => clearTimeout(timer);
+  }, [session, scriptReady, promptForFreshSession]);
+
   // Convex calls this to get the JWT it sends with every request.
   const fetchAccessToken = useCallback(
     async ({ forceRefreshToken } = {}) => {
       const s = sessionRef.current;
       if (!s) return null;
-      const expiresSoon = Date.now() > s.exp * 1000 - 60000;
-      // forceRefreshToken means the server rejected the current token
-      // (expired or invalid) — returning it again would loop.
-      if (!expiresSoon && !forceRefreshToken) return s.token;
+      const msLeft = s.exp * 1000 - Date.now();
+      if (msLeft > 60000 && !forceRefreshToken) return s.token;
       // Google ID tokens live ~1h; try a silent One Tap refresh.
       const fresh = await promptForFreshSession();
       if (fresh) return fresh.token;
+      // Silent re-auth failed. Convex force-refreshes on reconnects and
+      // other non-expiry events; if the current token is still valid, keep
+      // using it instead of logging the user out.
+      if (msLeft > 60000) return s.token;
       signOut();
       return null;
     },
