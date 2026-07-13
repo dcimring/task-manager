@@ -10,7 +10,7 @@ Check items off as they land; each numbered section is intended to be one unit o
 | 1 | Real backend authentication | Critical | ☑ Done (2026-07-12) |
 | 2 | Schema hardening (indexes, literal types, project IDs) | High | ☑ Done (2026-07-12) |
 | 3 | Recurring-task edge cases | High | ☑ Done (2026-07-12) |
-| 4 | Split App.jsx into components | Medium | ☐ Not started |
+| 4 | Split App.jsx into components | Medium | ☑ Done (2026-07-12) |
 | 5 | Tests, linting, CI | Medium | ☐ Not started |
 | 6 | Convert frontend to TypeScript | Medium | ☐ Not started |
 | 7 | Date-only deadline storage | Medium | ☐ Not started |
@@ -133,20 +133,40 @@ Original findings:
   dateStarted/dateCompleted/recurrence-clone logic in two code paths.
   Extract a shared helper so they can't drift.
 
-## 4. Split App.jsx into components (Medium)
+## 4. Split App.jsx into components (Medium) — DONE
 
-`src/App.jsx` is ~2,700 lines: auth, six views, edit panel, toasts,
-drag-and-drop, and date utilities in one component.
+Completed 2026-07-12. `src/App.jsx` is now ~400 lines (down from ~2,700) and
+only holds state, Convex wiring, and action handlers; everything else moved
+out:
 
-- Every keystroke (e.g. search filter) re-renders the whole app; derived data
-  (`getFilteredTasks`, `getProjectStats`, weekly stats) is recomputed each
-  render with no `useMemo`.
-- Proposed split:
-  - `components/` — FocusView, TasksView, BoardView, ProjectsView,
-    AnalyticsView, WeeklyReportView, TaskPanel, Sidebar, toasts.
-  - `hooks/` — auth hook, update-checker hook.
-  - `lib/dates.js` — pure date helpers (also makes them unit-testable).
-- Add `useMemo` for derived data where it matters.
+- `components/` — `LoginScreen`, `Sidebar` (+ mobile header/drawer),
+  `FocusView`, `TasksView`, `BoardView`, `ProjectsView`, `AnalyticsView`,
+  `WeeklyReportView`, `TaskPanel`, `ReminderToasts`, `UpdateToast`.
+- `hooks/useAuth.jsx` — the Google auth provider, moved verbatim from
+  `src/auth.jsx` (no logic changes; see the auth gotcha notes in CLAUDE.md,
+  which still apply).
+- `hooks/useUpdateChecker.js` — the version-polling effect, extracted out of
+  the update-toast state.
+- `lib/dates.js` — pure date helpers (`fmtDate`, `formatAge`, `daysBetween`,
+  `mondayOf`, `weekKeyOf`, `weekLabel`, `addDays`), now unit-testable.
+- `lib/constants.js` — color/label maps (`urgencyColor`, `statusMeta`, etc.)
+  shared across views.
+- `lib/taskDerivations.js` — the pure derivation functions (`decorate`,
+  `getFilteredTasks`, `getProjectStats`, `getFocusTasks`, `getBoardColumns`,
+  weekly-stats helpers), each now taking explicit args instead of closing
+  over component state.
+
+`getFilteredTasks`, `getProjectStats`, `getFocusTasks`, `getBoardColumns`,
+and the weekly-stats/analytics aggregates are now wrapped in `useMemo` in
+`App.jsx`, keyed off `tasks`/`projects`/`filters`/`localDateStr`, so a
+keystroke in the search box no longer recomputes them for the whole app.
+
+Verified: `vite build` succeeds; manually exercised Focus, Tasks (including
+search-filter reactivity), Board, Projects (including the quick-add form),
+Analytics, and Weekly Report views, the new/edit task panel (urgency, date,
+reminder-vs-deadline toggle, recurrence, clear, status, save/close), and the
+mobile hamburger/drawer navigation — all behave identically to before the
+split.
 
 ## 5. Tests, linting, CI (Medium)
 

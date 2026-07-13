@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
 import { ConvexProviderWithAuth, ConvexReactClient } from "convex/react";
-import { GoogleAuthProvider, useGoogleConvexAuth } from './auth.jsx';
+import { GoogleAuthProvider, useGoogleConvexAuth } from './hooks/useAuth.jsx';
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL || "";
 // initialAuthTokenReuse: without it, Convex force-refreshes the token right
