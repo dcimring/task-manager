@@ -32,11 +32,16 @@ Verified: unauthenticated CLI calls and a forged localStorage session both
 get zero data and fall back to the login screen.
 
 Design notes / follow-ups:
-- Google ID tokens expire after ~1 hour. On expiry (or server rejection) the
-  app attempts a silent One Tap re-auth; if that fails it signs out to the
-  login screen. If hourly One Tap becomes annoying, the upgrade path is
-  Convex Auth or Clerk with refresh tokens — requires the Google OAuth
-  client secret and a redirect-URI change in Google Cloud Console.
+- **Session length (resolved 2026-07-23):** the original ~1h Google-ID-token
+  session caused frequent re-logins. Fixed with a custom token-exchange model
+  instead of migrating to Convex Auth/Clerk: `POST /auth/session`
+  (`convex/http.ts`) verifies the Google ID token once and mints our own
+  30-day sliding session JWT (RS256, `JWT_PRIVATE_KEY`/`JWKS` deployment vars),
+  which Convex trusts via `customJwt` in `auth.config.ts`. Silent renewal uses
+  the session token itself (no Google prompt), so ordinary use keeps a login
+  alive indefinitely; Google One Tap is only needed for the first login or
+  after ~30 days idle. No Google Cloud Console changes were required. See the
+  auth section in CLAUDE.md.
 - The live app still points at the dev Convex deployment
   (`fearless-porpoise-401`); the prod deployment is unused. If that's ever
   cleaned up, remember to set `AUTH_GOOGLE_CLIENT_ID` and `ALLOWED_EMAILS`
