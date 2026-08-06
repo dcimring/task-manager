@@ -17,6 +17,15 @@ Convex agent skills for common tasks can be installed by running
 The improvement roadmap lives in **IMPROVEMENTS.md** (status table at top).
 Work items one at a time; mark them done there and commit.
 
+Standing working rules (Daniel, 2026-07-30):
+
+- **Commit and push without asking** once a work item is complete and verified.
+  Delete merged branches as part of the merge. Ask first only for
+  risky/destructive git operations. Deploys (backend push / `npm run deploy`)
+  still only on explicit ask — dev Convex is the live app.
+- **Secrets never go in chat.** Keys live in `.env.local`/deployment env vars —
+  reference them by name. If Daniel pastes one, flag it for rotation.
+
 Operational facts (non-obvious, verified 2026-07-12):
 
 - **The live app runs against the dev Convex deployment**
