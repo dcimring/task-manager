@@ -44,16 +44,24 @@ async function resolveProject(
   return await ctx.db.insert("projects", { name, description: "" });
 }
 
-function calculateNextDeadline(recurrence: string, currentDeadlineStr: string): string {
-  const baseDate = new Date(currentDeadlineStr);
+// `intervals` occurrences after `baseDeadlineStr`. Always measured from the
+// given base rather than by repeated single steps, so clamping can't
+// accumulate: Jan 31 + 7 months is Aug 31, not Aug 28 (which is what stepping
+// through February one month at a time would give).
+function addRecurrenceIntervals(
+  recurrence: string,
+  baseDeadlineStr: string,
+  intervals: number,
+): string {
+  const baseDate = new Date(baseDeadlineStr);
   if (recurrence === "weekly") {
-    const nextDate = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const nextDate = new Date(baseDate.getTime() + intervals * 7 * 24 * 60 * 60 * 1000);
     return nextDate.toISOString();
   } else if (recurrence === "monthly" || recurrence === "yearly") {
     const year = baseDate.getUTCFullYear();
     const month = baseDate.getUTCMonth();
     const day = baseDate.getUTCDate();
-    const monthsToAdd = recurrence === "yearly" ? 12 : 1;
+    const monthsToAdd = (recurrence === "yearly" ? 12 : 1) * intervals;
 
     const targetYear = year + Math.floor((month + monthsToAdd) / 12);
     const targetMonth = (month + monthsToAdd) % 12;
@@ -75,6 +83,30 @@ function calculateNextDeadline(recurrence: string, currentDeadlineStr: string): 
     return nextDate.toISOString();
   }
   throw new Error(`Unsupported recurrence type: ${recurrence}`);
+}
+
+function calculateNextDeadline(recurrence: string, currentDeadlineStr: string): string {
+  return addRecurrenceIntervals(recurrence, currentDeadlineStr, 1);
+}
+
+// A recurring task created with an already-past deadline should start at its
+// next future occurrence rather than firing a reminder straight away — a
+// yearly task added in August for "24 Jul" means next year's 24 Jul.
+// Deliberately distinct from the catch-up semantics in `computeStatusUpdate`
+// (see IMPROVEMENTS.md #3), which advances an existing *completed* task by
+// exactly one interval even when that lands in the past.
+function advanceToFutureOccurrence(
+  recurrence: Recurrence,
+  deadline: string,
+  today: string,
+): string {
+  let next = deadline;
+  // Bounded purely as a runaway guard; each step moves strictly forward, and
+  // 1000 weekly intervals is ~19 years of backdating.
+  for (let i = 1; i <= 1000 && next.slice(0, 10) < today; i++) {
+    next = addRecurrenceIntervals(recurrence, deadline, i);
+  }
+  return next;
 }
 
 type RecurrenceClone = {
@@ -148,16 +180,26 @@ export const save = mutation({
     deadline: v.union(v.string(), v.null()),
     recurrence: v.optional(v.union(recurrenceValidator, v.null())),
     dateType: v.optional(v.union(dateTypeValidator, v.null())),
+    // The client's local date (YYYY-MM-DD). "Already passed" is judged
+    // against the user's day, not the server's UTC day, so a task added
+    // just after local midnight doesn't skip an occurrence.
+    today: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireUser(ctx);
     const now = new Date().toISOString();
-    const { _id, ...data } = args;
+    const { _id, today, ...data } = args;
     const recurrence = data.recurrence || null;
     const dateType = data.dateType || null;
 
     const existing = _id ? await ctx.db.get(_id) : null;
     if (_id && !existing) throw new Error("Task not found");
+
+    // Only on create — editing an existing task keeps the date as typed.
+    const deadline =
+      !existing && recurrence && data.deadline
+        ? advanceToFutureOccurrence(recurrence, data.deadline, today || now.slice(0, 10))
+        : data.deadline;
 
     // Validates recurrence/deadline (throws on a bad value) before any
     // write below happens.
@@ -168,7 +210,7 @@ export const save = mutation({
       previousDateCompleted: existing?.dateCompleted ?? null,
       recurrence,
       dateType,
-      deadline: data.deadline,
+      deadline,
       now,
     });
 
@@ -181,7 +223,7 @@ export const save = mutation({
         projectId,
         urgency: data.urgency,
         status: data.status,
-        deadline: data.deadline,
+        deadline,
         recurrence,
         dateType,
         dateStarted,
@@ -194,7 +236,7 @@ export const save = mutation({
         projectId,
         urgency: data.urgency,
         status: data.status,
-        deadline: data.deadline,
+        deadline,
         recurrence,
         dateType,
         dateAdded: now,

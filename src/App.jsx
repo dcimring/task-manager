@@ -106,6 +106,9 @@ export default function App() {
       deadline,
       recurrence,
       dateType,
+      // Lets the backend roll a new recurring task with an already-past
+      // deadline forward to its next occurrence, judged against *our* day.
+      today: localDateStr,
     });
     setPanel(null);
   };
