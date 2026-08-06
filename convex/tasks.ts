@@ -49,18 +49,17 @@ function calculateNextDeadline(recurrence: string, currentDeadlineStr: string): 
   if (recurrence === "weekly") {
     const nextDate = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
     return nextDate.toISOString();
-  } else if (recurrence === "monthly") {
+  } else if (recurrence === "monthly" || recurrence === "yearly") {
     const year = baseDate.getUTCFullYear();
     const month = baseDate.getUTCMonth();
     const day = baseDate.getUTCDate();
+    const monthsToAdd = recurrence === "yearly" ? 12 : 1;
 
-    let targetYear = year;
-    let targetMonth = month + 1;
-    if (targetMonth > 11) {
-      targetMonth = 0;
-      targetYear += 1;
-    }
+    const targetYear = year + Math.floor((month + monthsToAdd) / 12);
+    const targetMonth = (month + monthsToAdd) % 12;
 
+    // Clamp to the last valid day of the target month (Jan 31 -> Feb 28,
+    // Feb 29 -> Feb 28 on a non-leap year).
     const maxDays = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
     const finalDay = Math.min(day, maxDays);
 

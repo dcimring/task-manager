@@ -331,6 +331,7 @@ export default function TaskPanel({ panel, projects, updateDraft, closePanel, sa
             <option value="none">No Repeat</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
           </select>
           {!panelView.deadline && (
             <div

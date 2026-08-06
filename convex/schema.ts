@@ -17,6 +17,7 @@ export const statusValidator = v.union(
 export const recurrenceValidator = v.union(
   v.literal("weekly"),
   v.literal("monthly"),
+  v.literal("yearly"),
 );
 
 export const dateTypeValidator = v.union(
