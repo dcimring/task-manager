@@ -6,6 +6,14 @@ const buildTimestamp = Date.now().toString();
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Pinned: Google Sign-In only accepts origins listed on the OAuth client
+  // (project day-ai-agents-499920), and http://localhost:5199 is the one
+  // authorized for local dev. strictPort fails loudly instead of silently
+  // hopping to another (unauthorized) port when 5199 is busy.
+  server: {
+    port: 5199,
+    strictPort: true,
+  },
   plugins: [
     react(),
     cloudflare(),

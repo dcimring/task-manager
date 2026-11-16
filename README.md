@@ -41,6 +41,8 @@ Make sure you have Node.js and [pnpm](https://pnpm.io) installed. This project u
    ```bash
    pnpm dev
    ```
+   The app runs at http://localhost:5199. The port is pinned in `vite.config.js`
+   because Google Sign-In only accepts origins authorized on the OAuth client.
 
 ## Folder Structure
 

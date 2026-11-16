@@ -36,7 +36,13 @@ Operational facts (non-obvious, verified 2026-07-12):
   the only lockfile). Always invoke scripts as `pnpm run <script>` — `pnpm
   deploy` is pnpm's own workspace-deploy command and will NOT run our script.
   Also note pnpm forwards `--` literally, so script args need no `--`
-  separator (that's why `.claude/launch.json` passes `--port` directly).
+  separator.
+- **Local dev port is pinned to 5199** (`vite.config.js`, `strictPort`).
+  Google Sign-In rejects any origin not listed on the OAuth client
+  (`origin_mismatch`); `http://localhost:5199` is the authorized local one.
+  The client lives in Google Cloud project `day-ai-agents-499920`
+  ("5 Day AI Agents", owned by Daniel's personal Google account) — change
+  origins there, and don't move the port without adding the new origin.
 - Deploy backend: `npx convex dev --once`. Deploy frontend:
   `pnpm run deploy` (Cloudflare, https://task-manager.odd-fog-93e2.workers.dev).
 - **Auth** (token-exchange model, since 2026-07-23): the app does NOT use
