@@ -21,7 +21,7 @@ Standing working rules (Daniel, 2026-07-30):
 
 - **Commit and push without asking** once a work item is complete and verified.
   Delete merged branches as part of the merge. Ask first only for
-  risky/destructive git operations. Deploys (backend push / `npm run deploy`)
+  risky/destructive git operations. Deploys (backend push / `pnpm run deploy`)
   still only on explicit ask — dev Convex is the live app.
 - **Secrets never go in chat.** Keys live in `.env.local`/deployment env vars —
   reference them by name. If Daniel pastes one, flag it for rotation.
@@ -32,8 +32,13 @@ Operational facts (non-obvious, verified 2026-07-12):
   (`fearless-porpoise-401`, set in `.env.local`). The prod deployment
   (`proficient-hound-901`) is unused. Data on dev IS live data — migrations
   run there affect the real app.
+- **Package manager: pnpm** (pinned via `packageManager`; `pnpm-lock.yaml` is
+  the only lockfile). Always invoke scripts as `pnpm run <script>` — `pnpm
+  deploy` is pnpm's own workspace-deploy command and will NOT run our script.
+  Also note pnpm forwards `--` literally, so script args need no `--`
+  separator (that's why `.claude/launch.json` passes `--port` directly).
 - Deploy backend: `npx convex dev --once`. Deploy frontend:
-  `npm run deploy` (Cloudflare, https://task-manager.odd-fog-93e2.workers.dev).
+  `pnpm run deploy` (Cloudflare, https://task-manager.odd-fog-93e2.workers.dev).
 - **Auth** (token-exchange model, since 2026-07-23): the app does NOT use
   Google's ~1h ID token as the Convex session. Login flow: Google Identity
   Services yields an ID token → the client POSTs it to `POST /auth/session`

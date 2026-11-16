@@ -21,13 +21,14 @@ An elegant, modern, and real-time personal task record application built with **
 
 ### Prerequisites
 
-Make sure you have Node.js and the Convex CLI installed.
+Make sure you have Node.js and [pnpm](https://pnpm.io) installed. This project uses pnpm
+(pinned via the `packageManager` field) — `pnpm-lock.yaml` is the only lockfile.
 
 ### Installation
 
 1. Clone the repository and install dependencies:
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. Run the Convex development server to link/initialize the backend:
@@ -38,7 +39,7 @@ Make sure you have Node.js and the Convex CLI installed.
 
 3. Start the Vite React development server:
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
 ## Folder Structure
